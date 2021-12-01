@@ -1,29 +1,22 @@
 #!/usr/bin/python
-import queue
 
-
-def part1():
+def part1(nbrs: [int]) -> int:
     counter = 0
     prev = None
 
-    with open("input1", 'r') as f:
-        for line in f.readlines():
-            nbr = int(line[:-1])
-            if prev is None:
-                prev = nbr
-            else:
-                if nbr > prev:
-                    counter += 1
-                prev = nbr
+    for nbr in nbrs:
+        if prev is None:
+            prev = nbr
+        else:
+            if nbr > prev:
+                counter += 1
+            prev = nbr
 
     return counter
 
 
 class Window:
     values = [None] * 3
-
-    def print(self):
-        print(self.values)
 
     def has_none(self):
         return None in self.values
@@ -48,32 +41,30 @@ class Window:
         return sum
 
 
-def part2():
+def part2(nbrs: [int]) -> int:
     counter = 0
 
     window = Window()
     prev = None
 
-    with open("input1", 'r') as f:
-        for line in f.readlines():
-            nbr = int(line[:-1])
-            window.add(nbr)
-            window.print()
-            if window.has_none():
-                continue
-            else:
-                if prev is not None:
-                    print(window.get_sum(), " VS ", prev)
-                    if window.get_sum() > prev:
-                        counter += 1
-                prev = window.get_sum()
+    for nbr in nbrs:
+        window.add(nbr)
+        if window.has_none():
+            continue
+        else:
+            if prev is not None:
+                if window.get_sum() > prev:
+                    counter += 1
+            prev = window.get_sum()
 
     return counter
 
 
 def main():
-    print(part1())
-    print(part2())
+    nbrs = [int(line[:-1]) for line in open("input1", 'r').readlines()]
+
+    print("Part 1:", part1(nbrs))
+    print("Part 2:", part2(nbrs))
 
 
 if __name__ == "__main__":
