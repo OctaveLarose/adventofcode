@@ -9,13 +9,8 @@ def part2(instrs: [(str, int)]) -> (int, int):
     h, d, a = 0, 0, 0
 
     for dir, val in instrs:
-        if dir == "forward":
-            h = h + val
-            d = d + a * val
-        elif dir == "down":
-            a = a + val
-        elif dir == "up":
-            a = a - val
+        if dir == "forward": h, d = h + val, d + a * val
+        else: a = a + (val if dir == "down" else -val)
 
     return h, d
 
