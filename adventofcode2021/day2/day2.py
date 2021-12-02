@@ -1,17 +1,8 @@
 #!/usr/bin/python
 
 def part1(instrs: [(str, int)]) -> (int, int):
-    h, d = 0, 0
-
-    for dir, val in instrs:
-        if dir == "forward":
-            h = h + val
-        elif dir == "down":
-            d = d + val
-        elif dir == "up":
-            d = d - val
-
-    return h, d
+    l = [(val if dir == "forward" else 0, val if dir == "down" else -val if dir == "up" else 0) for dir, val in instrs]
+    return tuple(map(sum, zip(*l)))
 
 
 def part2(instrs: [(str, int)]) -> (int, int):
@@ -32,9 +23,10 @@ def part2(instrs: [(str, int)]) -> (int, int):
 def main():
     instrs = [(line[:-1].split()[0], int(line[:-1].split()[1])) for line in open("input2", 'r').readlines()]
 
-    print(instrs)
-    print("Part 1:", part1(instrs))
-    print("Part 2:", part2(instrs))
+    p1 = part1(instrs)
+    p2 = part2(instrs)
+    print(f"Part 1: {p1}, product: {p1[0] * p1[1]}")
+    print(f"Part 2: {p2}, product: {p2[0] * p2[1]}")
 
 
 if __name__ == "__main__":
