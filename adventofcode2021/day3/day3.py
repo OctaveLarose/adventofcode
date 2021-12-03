@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 def part1(values: [[str]]):
-    gamma = int(''.join(list(map(lambda lst: max(set(lst), key=lst.count), list(zip(*values))))), 2)
+    gamma = int(''.join(map(lambda lst: max(set(lst), key=lst.count), zip(*values))), 2)
     return gamma * (gamma ^ int(f"0b{'1' * gamma.bit_length()}", 2))
 
 
