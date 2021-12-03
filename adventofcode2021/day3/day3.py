@@ -6,16 +6,12 @@ def part1(values: [[str]]):
 
 
 def get_sub_vals(values: [[str]], is_oxy: bool) -> int:
-    max_l = lambda lst: '1' if lst.count('1') >= lst.count('0') else '0'
-    min_l = lambda lst: '0' if lst.count('0') <= lst.count('1') else '1'
-
     if len(values) == 1:
         return int(values[0][0], 2)
 
-    first_bits = [v[1][0] for v in values]
-    bit = max_l(first_bits) if is_oxy else min_l(first_bits)
-    new_values = [(v[0], v[1][1:]) for v in values if v[1][0] == bit]
-    return get_sub_vals(new_values, is_oxy)
+    max_l = lambda lst, is_oxy: ('1' if is_oxy else '0') if lst.count('0') <= lst.count('1') else ('0' if is_oxy else '1')
+    bit = max_l([v[1][0] for v in values], is_oxy)
+    return get_sub_vals([(v[0], v[1][1:]) for v in values if v[1][0] == bit], is_oxy)
 
 
 def part2(values: [[str]]):
