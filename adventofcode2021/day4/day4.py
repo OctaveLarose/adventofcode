@@ -1,20 +1,18 @@
 #!/usr/bin/python
 
-# def part1(values: [[str]]):
-#     gamma = int(''.join(map(lambda lst: max(set(lst), key=lst.count), zip(*values))), 2)
-#     return gamma * (gamma ^ int(f"0b{'1' * gamma.bit_length()}", 2))
-
 
 def parse(filename: str) -> ([int], [[int]]):
     with open(filename, 'r') as f:
-        nbrs, grids = f.readline().strip().split(","), []
-        while f.readline():  # Blank line skip
-            grids.append([f.readline().strip().split() for _ in range(5)])
-        return nbrs, grids
+        draws = [int(n) for n in f.readline().strip().split(",")]
+        grids = [[(int(val), False) for val in (''.join([f.readline() for _ in range(5)])).strip().split()] for _ in f.readline()]  # Blank line skip with readline
+    return draws, grids
 
 
 def main():
-    print(parse("testinput4.txt"))
+    draws, grids = parse("testinput4.txt")
+
+    print(f"Draws: {draws}")
+    print(f"Grids: {grids}")
 
     # values = [list(line[:-1]) for line in open("input3", 'r').readlines()]
     # print(f"Part 1: {part1(values)}")
