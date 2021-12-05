@@ -3,11 +3,12 @@
 from collections import Counter
 
 
-def part1(values: [((int, int), (int, int))]) -> int:
+def get_overlaps(values: [((int, int), (int, int))], handle_diags) -> int:
     c_list = []
     for (a, b), (c, d) in values:
-        if not (a == c or b == d):
-            continue
+        if handle_diags and not (a == c or b == d):
+            for i in range(abs(a - c) + 1):
+                c_list.append((a + (i if a < c else -i), b + (i if b < d else -i)))
         if a == c:
             for i in range(min(b, d), max(b, d) + 1):
                 c_list.append((a, i))
@@ -21,7 +22,8 @@ def part1(values: [((int, int), (int, int))]) -> int:
 def main():
     values = [(tuple(tuple(int(v) for v in bll.split(",")) for bll in line.strip().split('->'))) for line in open("input5", 'r').readlines()]
 
-    print("Part 1:", part1(values))
+    print("Part 1:", get_overlaps(values, False))
+    print("Part 2:", get_overlaps(values, True))
 
 
 if __name__ == "__main__":
