@@ -1,5 +1,4 @@
 #!/usr/bin/python
-from pprint import pprint
 
 GRID_SIZE = 5
 
@@ -40,7 +39,7 @@ def part2(draws: [int], grids: [[int]]) -> int:
 
 
 def main():
-    draws, grids = parse("input4.txt")
+    draws, grids = parse("input4")
 
     print(f"Part 1: {part1(draws, grids)}")
     print(f"Part 2: {part2(draws, grids)}")
