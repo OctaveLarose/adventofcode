@@ -17,7 +17,8 @@ def get_overlaps(values: [((int, int), (int, int))], handle_diags) -> int:
 
 
 def main():
-    values = [(tuple(tuple(int(v) for v in bll.split(",")) for bll in line.strip().split('->'))) for line in open("input5", 'r').readlines()]
+    values = [(tuple(tuple(int(v) for v in bll.split(",")) for bll in line.strip().split('->'))) for line in open(
+        "inputs/input5", 'r').readlines()]
 
     print("Part 1:", get_overlaps(values, False))
     print("Part 2:", get_overlaps(values, True))

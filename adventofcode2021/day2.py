@@ -16,7 +16,7 @@ def part2(instrs: [(str, int)]) -> (int, int):
 
 
 def main():
-    instrs = [(line[:-1].split()[0], int(line[:-1].split()[1])) for line in open("input2", 'r').readlines()]
+    instrs = [(line[:-1].split()[0], int(line[:-1].split()[1])) for line in open("inputs/input2", 'r').readlines()]
 
     p1 = part1(instrs)
     p2 = part2(instrs)

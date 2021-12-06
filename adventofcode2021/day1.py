@@ -32,7 +32,7 @@ def part2(nbrs: [int]) -> int:
 
 
 def main():
-    nbrs = [int(line[:-1]) for line in open("input1", 'r').readlines()]
+    nbrs = [int(line[:-1]) for line in open("inputs/input1", 'r').readlines()]
 
     print("Part 1:", part1(nbrs))
     print("Part 2:", part2(nbrs))

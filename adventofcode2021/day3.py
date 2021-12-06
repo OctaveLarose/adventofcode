@@ -20,7 +20,7 @@ def part2(values: [[str]]):
 
 
 def main():
-    values = [list(line[:-1]) for line in open("input3", 'r').readlines()]
+    values = [list(line[:-1]) for line in open("inputs/input3", 'r').readlines()]
     print(f"Part 1: {part1(values)}")
     print(f"Part 2: {part2(values)}")
 
