@@ -7,13 +7,17 @@ def part1(vals) -> int:
 
 
 def part2(vals) -> int:
+    letters = {}
     for patterns in [v[0] for v in vals]:
         mapped_vals = {i: None for i in range(10)}
         for a, b in [(2, 1), (3, 7), (4, 4), (7, 8)]:
             mapped_vals[b] = next(filter(lambda val: len(val) == a, patterns))
 
-        f_letter = next((letter for letter, nbr in Counter(''.join([p for p in patterns])).items() if nbr == 9), None)
-        mapped_vals[2] = next(filter(lambda val: f_letter not in val, patterns))
+        letters['f'] = next((letter for letter, nbr in Counter(''.join([p for p in patterns])).items() if nbr == 9), None)
+        mapped_vals[2] = next(filter(lambda val: letters['f'] not in val, patterns))
+
+        letters['c'] = mapped_vals[1].replace(letters['f'], '')
+        mapped_vals[6] = next(filter(lambda val: sorted(mapped_vals[8].replace(letters['c'], '')) == sorted(val), patterns))
 
         # Len 5: 2, 3, 5
         # Len 6: 0, 6, 9. 8 minus dddd, cccc and eeee respectively
