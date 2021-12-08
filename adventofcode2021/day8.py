@@ -1,16 +1,15 @@
 #!/usr/bin/python
 
 
-def part1() -> int:
+def part1(vals) -> int:
+    print(vals)
     return 42
 
 
 def main():
-    parsed_vals = [int(v) for v in open("inputs/input8", 'r').readline().split(",")]
+    vals = [tuple([c.strip().split(" ") for c in l.split("|")]) for l in open("inputs/tests/testinput8", 'r').readlines()]
 
-    print(parsed_vals)
-
-    print("Part 1:", part1())
+    print("Part 1:", part1(vals))
 
 
 if __name__ == "__main__":
