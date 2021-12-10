@@ -16,13 +16,9 @@ def get_low_points(coords) -> [int]:
 
 def get_basin(point, coords):
     (x, y), v = point
-
-    coords_around = [(s, coords.get(s)) for s in get_neighbor_coords(x, y) if (coords.get(s) is not None and v < coords.get(s) < 9)]
-
-    ret_list = [point]
-    for p in coords_around:
-        ret_list += get_basin(p, coords)
-    return set(ret_list)
+    is_valid_basin_coord = lambda s, v: (coords.get(s) is not None and v < coords.get(s) < 9)
+    coords_around = [(s, coords.get(s)) for s in get_neighbor_coords(x, y) if is_valid_basin_coord(s, v)]
+    return set([point] + [item for sublist in [get_basin(p, coords) for p in coords_around] for item in sublist])
 
 
 def part2(coords) -> int:
