@@ -1,37 +1,31 @@
 #!/usr/bin/python
 
-def reduce_stack(stack):
+
+def get_corrupted_char_in_line(line) -> (bool, str):
     pairs = ['()', '[]', '{}', '<>']
-    while len(stack) != 0 and stack[-1] in ")]}>":
-        if ''.join(stack[-2:]) in pairs:
-            stack = stack[:-2]
-        else:
+    stack = []
+    for c in line:
+        stack.append(c)
+
+        while len(stack) != 0 and stack[-1] in ")]}>":
+            if ''.join(stack[-2:]) in pairs:
+                stack = stack[:-2]
+            else:
+                return c
+
+        if len(stack) == 0:
             return None
-    return stack
+
+    return None
 
 
 def part1(lines) -> int:
-    points_map = {')': 3, ']': 57, '}': 1197, '>': 25137}
-    invalid_chars = []
-
-    for l in lines:
-        stack = []
-        for c in l:
-            stack.append(c)
-            stack = reduce_stack(stack)
-
-            if stack is None:
-                invalid_chars.append(c)
-                break
-
-            if len(stack) == 0:
-                break
-
-    return sum([points_map.get(c) for c in invalid_chars])
+    invalid_chars = [get_corrupted_char_in_line(l) for l in lines]
+    return sum([{')': 3, ']': 57, '}': 1197, '>': 25137, None: 0}.get(c) for c in invalid_chars])
 
 
 def main():
-    lines = [list(l.strip()) for l in open("inputs/input10", 'r').readlines()]
+    lines = [list(l.strip()) for l in open("inputs/tests/testinput10", 'r').readlines()]
 
     print("Part 1:", part1(lines))
 
