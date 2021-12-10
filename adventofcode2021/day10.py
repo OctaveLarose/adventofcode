@@ -1,17 +1,23 @@
 #!/usr/bin/python
-from pprint import pprint
+from functools import reduce
+
+
+def reduce_stack(stack):
+    while len(stack) != 0 and stack[-1] in ")]}>":
+        if ''.join(stack[-2:]) in ['()', '[]', '{}', '<>']:
+            stack = stack[:-2]
+        else:
+            return None
+    return stack
 
 
 def get_corrupted_char_in_line(line) -> (bool, str):
     stack = []
     for c in line:
-        stack.append(c)
+        stack = reduce_stack(stack + [c])
 
-        while len(stack) != 0 and stack[-1] in ")]}>":
-            if ''.join(stack[-2:]) in ['()', '[]', '{}', '<>']:
-                stack = stack[:-2]
-            else:
-                return c
+        if stack is None:
+            return c
 
         if len(stack) == 0:
             return None
@@ -30,26 +36,10 @@ def part2(lines) -> int:
     for l in lines:
         if get_corrupted_char_in_line(l) is not None:
             continue
-        stack = []
-        for c in l:
-            stack.append(c)
-
-            while len(stack) != 0 and stack[-1] in ")]}>":
-                if ''.join(stack[-2:]) in ['()', '[]', '{}', '<>']:
-                    stack = stack[:-2]
-                else:
-                    return c
-
+        stack = reduce(lambda x, y: reduce_stack(x + [y]), l, [])
         missing_vals.append(list(reversed([{'(': ')', '[': ']', '{': '}', '<': '>'}.get(c) for c in stack])))
 
-    total_points = []
-    for m in missing_vals:
-        score = 0
-        for c in m:
-            score *= 5
-            score += {')': 1, ']': 2, '}': 3, '>': 4}.get(c)
-        total_points.append(score)
-
+    total_points = [reduce(lambda x, y: x * 5 + y, [{')': 1, ']': 2, '}': 3, '>': 4}.get(c) for c in m]) for m in missing_vals]
     return sorted(total_points)[len(total_points) // 2]
 
 
