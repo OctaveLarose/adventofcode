@@ -1,5 +1,4 @@
 #!/usr/bin/python
-from pprint import pprint
 
 GRID_SIZE = 10
 NBR_STEPS = 100
