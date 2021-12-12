@@ -22,17 +22,28 @@ def handle_flashes(idx, flash_map):
             handle_flashes(c_idx, flash_map)
 
 
-def part1(octopuses) -> int:
-    nbr_flashes = 0
+def flash_calculator(octopuses, first_sync_flash=False) -> int:
+    nbr_flashes, i = 0, 0
     flash_map = [[o, False] for o in octopuses]
 
-    for i in range(NBR_STEPS):
+    while True:
+        i += 1
+        if not first_sync_flash:
+            if i > NBR_STEPS:
+                break
+
         flash_map = [[o + 1, False] for o, hf in flash_map]
         for idx in range(len(flash_map)):
             if flash_map[idx][0] > THRESHOLD and not flash_map[idx][1]:
                 handle_flashes(idx, flash_map)
 
-        nbr_flashes += [f[1] for f in flash_map].count(True)
+        step_nbr_flashes = [f[1] for f in flash_map].count(True)
+        if first_sync_flash:
+            if step_nbr_flashes == GRID_SIZE * GRID_SIZE:
+                return i
+        else:
+            nbr_flashes += [f[1] for f in flash_map].count(True)
+
         flash_map = [(0, False) if o > THRESHOLD else (o, False) for o, hf in flash_map]
 
     return nbr_flashes
@@ -41,7 +52,8 @@ def part1(octopuses) -> int:
 def main():
     octopuses = [int(v) for v in open("inputs/input11", 'r').read().replace("\n", "")]
 
-    print("Part 1:", part1(octopuses))
+    print("Part 1:", flash_calculator(octopuses))
+    print("Part 2:", flash_calculator(octopuses, first_sync_flash=True))
 
 
 if __name__ == "__main__":
