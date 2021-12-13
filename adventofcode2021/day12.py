@@ -2,20 +2,14 @@
 from collections import Counter
 
 
-def get_connected_rooms(room, prev_path, conns, max_small_visits):
+def get_connected_rooms(room, conns):
     connected_rooms = []
     for c in conns:
         if room not in c:
             continue
-
         conn_room = c[0] if c[1] == room else c[1]
-
         if conn_room == "start":
             continue
-
-        if conn_room.islower() and conn_room in prev_path and max_small_visits == 1:
-            continue
-
         connected_rooms.append(conn_room)
     return connected_rooms
 
@@ -28,7 +22,7 @@ def navigate(room, prev_path, conns, paths, msv):
     if room.islower() and room in prev_path and any([a.islower() and b >= msv for a, b in Counter(prev_path).items()]):
         return paths
 
-    for cr in get_connected_rooms(room, prev_path, conns, msv):
+    for cr in get_connected_rooms(room, conns):
         navigate(cr, prev_path + [room], conns, paths, msv)
 
     return paths
