@@ -13,30 +13,29 @@ def get_connected_rooms(room, prev_path, conns, max_small_visits):
         if conn_room == "start":
             continue
 
-        if conn_room.islower() and conn_room in prev_path:
-            if max_small_visits == 1:
-                continue
+        if conn_room.islower() and conn_room in prev_path and max_small_visits == 1:
+            continue
 
         connected_rooms.append(conn_room)
     return connected_rooms
 
 
-def navigate(room, prev_path, conns, paths, max_small_visits):
+def navigate(room, prev_path, conns, paths, msv):
     if room == "end":
-        return prev_path + ["end"]
+        paths.append(prev_path + ["end"])
+        return paths
 
-    if room.islower() and room in prev_path and any([a.islower() and b >= max_small_visits for a, b in Counter(prev_path).items()]):
-        return
+    if room.islower() and room in prev_path and any([a.islower() and b >= msv for a, b in Counter(prev_path).items()]):
+        return paths
 
-    for cr in get_connected_rooms(room, prev_path, conns, max_small_visits):
-        n = navigate(cr, prev_path + [room], conns, paths, max_small_visits)
-        paths.append(n)
+    for cr in get_connected_rooms(room, prev_path, conns, msv):
+        navigate(cr, prev_path + [room], conns, paths, msv)
+
+    return paths
 
 
 def navigator(conns, max_small_visits=1):
-    p = []
-    navigate("start", [], conns, p, max_small_visits)
-    return len(list(filter(None, p)))
+    return len(list(filter(None, navigate("start", [], conns, [], max_small_visits))))
 
 
 def main():
