@@ -1,5 +1,4 @@
 #!/usr/bin/python
-from pprint import pprint
 
 
 def get_connected_rooms(room, prev_path, conns):
@@ -17,23 +16,22 @@ def get_connected_rooms(room, prev_path, conns):
     return connected_rooms
 
 
-def navigate(room, prev_path, conns):
-    paths = []
-
+def navigate(room, prev_path, conns, paths):
     if room == "end":
         return prev_path + ["end"]
     for cr in get_connected_rooms(room, prev_path, conns):
-        paths.append(navigate(cr, prev_path + [room], conns))
+        paths.append(navigate(cr, prev_path + [room], conns, paths))
     return paths
 
 
 def part1(conns):
-    pprint(navigate("start", [], conns))
-    return 42
+    paths = navigate("start", [], conns, [])
+    paths = list(filter(None, map(lambda l: None if any([type(x) is list for x in l]) else l, paths)))
+    return len(paths)
 
 
 def main():
-    conns = [tuple(v.strip().split("-")) for v in open("inputs/tests/testinput12", 'r').readlines()]
+    conns = [tuple(v.strip().split("-")) for v in open("inputs/input12", 'r').readlines()]
 
     print("Part 1:", part1(conns))
 
