@@ -1,4 +1,6 @@
 #!/usr/bin/python
+import sys
+from queue import PriorityQueue
 
 def get_adjacent(coord, cavern):
     x, y = coord
@@ -6,28 +8,37 @@ def get_adjacent(coord, cavern):
     return list(filter(lambda t: 0 <= t[0] < len(cavern[0]) and 0 <= t[1] < len(cavern[0]), [(x1, y1) for x1, y1 in coords]))
 
 
-def navigate(current_coord, cavern):
-    adjs = get_adjacent(current_coord, cavern)
-    cx, cy = current_coord
-    for (x, y) in adjs:
-        val, cost = cavern[y][x]
-        if val is None or val > cavern[cy][cx][0] + cost:
-            cavern[y][x][0] = cavern[cy][cx][0] + cost
-        else:
-            continue
-        print(*cavern, sep='\n', end='\n\n')
-        navigate((x, y), cavern)
+def get_min_cost_vertex(vertices):
+    return vertices.index(min(vertices))
+
+
+def dijkstra(cavern):
+    SIZE = len(cavern)
+    vertices = [sys.maxsize for i in range(SIZE**2)]
+    visited_vertices = []
+    vertices[0] = 0
+
+    while len(visited_vertices) != SIZE**2:
+        mcv = get_min_cost_vertex(vertices)
+        x, y = mcv % SIZE, mcv // SIZE
+        adjs = get_adjacent((x, y), cavern)
+        for xa, ya in adjs:
+            vertices[ya * SIZE + xa] = vertices[mcv] + cavern[ya][xa]
+        visited_vertices.append(((x, y), vertices[mcv]))
+        vertices[mcv] = sys.maxsize - 1
+
+    return visited_vertices
 
 
 def part1(cavern):
-    navigate((0, 0), cavern)
-    return cavern[-1][-1][0] - cavern[0][0][1]
+    print(dijkstra(cavern))
+    return 42
 
 
 def main():
-    cavern = [[[None, int(x)] for x in l.strip()] for l in open("inputs/input15", "r").readlines()]
-    cavern[0][0][0] = cavern[0][0][1]
-
+    cavern = [[int(x) for x in l.strip()] for l in open("inputs/tests/testinput15", "r").readlines()]
+    # cavern[0][0][0] = cavern[0][0][1]
+    print(cavern)
     print("Part 1:", part1(cavern))
 
 
