@@ -14,32 +14,39 @@ def get_min_cost_vertex(vertices):
 
 def dijkstra(cavern):
     SIZE = len(cavern)
-    vertices = [sys.maxsize for i in range(SIZE**2)]
-    visited_vertices = []
+    vertices = {i: sys.maxsize for i in range(SIZE**2)}
     vertices[0] = 0
+    visited_vertices = []
 
-    while len(visited_vertices) != SIZE**2:
-        mcv = get_min_cost_vertex(vertices)
-        x, y = mcv % SIZE, mcv // SIZE
-        adjs = get_adjacent((x, y), cavern)
-        for xa, ya in adjs:
-            vertices[ya * SIZE + xa] = vertices[mcv] + cavern[ya][xa]
-        visited_vertices.append(((x, y), vertices[mcv]))
-        vertices[mcv] = sys.maxsize - 1
+    pq = PriorityQueue()
+    pq.put((0, (0, 0)))
 
-    return visited_vertices
+    while not pq.empty():
+        (dist, current_vertex) = pq.get()
+        visited_vertices.append(current_vertex)
+        x1, y1 = current_vertex
+        current_vertex_id = SIZE * y1 + x1
 
+        adjs = get_adjacent(current_vertex, cavern)
+        for neighbor in adjs:
+            x, y = neighbor
+            neighbor_id = SIZE * y + x
+            distance = cavern[y][x]
+            if neighbor not in visited_vertices:
+                old_cost = vertices[neighbor_id]
+                new_cost = vertices[current_vertex_id] + distance
+                if new_cost < old_cost:
+                    pq.put((new_cost, neighbor))
+                    vertices[neighbor_id] = new_cost
 
-def part1(cavern):
-    print(dijkstra(cavern))
-    return 42
+    print(vertices)
+    return vertices[SIZE**2 - 1]
 
 
 def main():
     cavern = [[int(x) for x in l.strip()] for l in open("inputs/tests/testinput15", "r").readlines()]
-    # cavern[0][0][0] = cavern[0][0][1]
-    print(cavern)
-    print("Part 1:", part1(cavern))
+
+    print("Part 1:", dijkstra(cavern))
 
 
 if __name__ == "__main__":
