@@ -1,7 +1,16 @@
 #!/usr/bin/python
+from functools import reduce
+
 
 class Packet:
+    SUM_ID = 0
+    PROD_ID = 1
+    MIN_ID = 2
+    MAX_ID = 3
     LITERAL_ID = 4
+    GTHAN_ID = 5
+    LTHAN_ID = 6
+    EQUAL_ID = 7
 
     def __init__(self, input_str):
         if all([c in '01' for c in input_str]):
@@ -83,17 +92,54 @@ class Packet:
     def get_version_sum(self):
         return self.packet_version + sum([sp.get_version_sum() for sp in self.subpackets])
 
+    def calculate(self):
+        if self.packet_type_id == self.SUM_ID:
+            return sum([sp.calculate() for sp in self.subpackets])
+        elif self.packet_type_id == self.PROD_ID:
+            return reduce(lambda x, y: x * y, [sp.calculate() for sp in self.subpackets])
+        elif self.packet_type_id == self.MIN_ID:
+            return min([sp.calculate() for sp in self.subpackets])
+        elif self.packet_type_id == self.MAX_ID:
+            return max([sp.calculate() for sp in self.subpackets])
+        elif self.packet_type_id == self.LITERAL_ID:
+            return self.packet_value
+        elif self.packet_type_id == self.GTHAN_ID:
+            return 1 if self.subpackets[0].calculate() > self.subpackets[1].calculate() else 0
+        elif self.packet_type_id == self.LTHAN_ID:
+            return 1 if self.subpackets[0].calculate() < self.subpackets[1].calculate() else 0
+        elif self.packet_type_id == self.EQUAL_ID:
+            return 1 if self.subpackets[0].calculate() == self.subpackets[1].calculate() else 0
+        else:
+            raise NotImplementedError
 
-def main():
-    packet_str = open("inputs/input16").read()
 
+def part1_asserts():
     assert Packet("D2FE28").parse().get_version_sum() == 6
     assert Packet("8A004A801A8002F478").parse().get_version_sum() == 16
     assert Packet("620080001611562C8802118E34").parse().get_version_sum() == 12
     assert Packet("C0015000016115A2E0802F182340").parse().get_version_sum() == 23
     assert Packet("A0016C880162017C3686B18A3D4780").parse().get_version_sum() == 31
 
+
+def part2_asserts():
+    assert Packet("C200B40A82").parse().calculate() == 3
+    assert Packet("04005AC33890").parse().calculate() == 54
+    assert Packet("880086C3E88112").parse().calculate() == 7
+    assert Packet("CE00C43D881120").parse().calculate() == 9
+    assert Packet("D8005AC2A8F0").parse().calculate() == 1
+    assert Packet("F600BC2D8F").parse().calculate() == 0
+    assert Packet("9C005AC2F8F0").parse().calculate() == 0
+    assert Packet("9C0141080250320F1802104A08").parse().calculate() == 1
+
+
+def main():
+    packet_str = open("inputs/input16").read()
+
+    part1_asserts()
+    part2_asserts()
+
     print("Part 1:", Packet(packet_str).parse().get_version_sum())
+    print("Part 2:", Packet(packet_str).parse().calculate())
 
 
 if __name__ == "__main__":
