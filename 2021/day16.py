@@ -25,28 +25,28 @@ class Packet:
 
         self.packet_version = None
         self.packet_type_id = None
-
         self.packet_len = None
 
     def parse(self):
         self.packet_version = int(self.bin_str[:3], 2)
         self.packet_type_id = int(self.bin_str[3:6], 2)
-
         self.packet_len = 6
 
         if self.packet_type_id == self.LITERAL_ID:
             self.parse_literal()
         else:
             self.parse_operator()
+
         return self
 
     def parse_literal(self):
+        LEN_CHUNK = 5
         value_str = self.bin_str[6:]
         nbr_bits = ''
-        for i in range(0, len(value_str), 5):
-            chunk = value_str[i:i + 5]
+        for i in range(0, len(value_str), LEN_CHUNK):
+            chunk = value_str[i:i + LEN_CHUNK]
             nbr_bits += chunk[1:]
-            self.packet_len += len(chunk)
+            self.packet_len += LEN_CHUNK
             if chunk[0] == '0':
                 break
 
@@ -79,19 +79,14 @@ class Packet:
                 idx += p.get_packet_len()
                 self.packet_len += p.get_packet_len()
 
-    def print_info(self):
-        print(f"Packet version: {self.packet_version}")
-        print(f"Packet type ID: {self.packet_type_id}")
-        print(f"Packet length: {self.packet_len}")
-        if self.packet_value is not None:
-            print(f"Packet value: {self.packet_value}")
-
     def get_packet_len(self):
         return self.packet_len
 
+    # Part 1 function
     def get_version_sum(self):
         return self.packet_version + sum([sp.get_version_sum() for sp in self.subpackets])
 
+    # Part 2 function
     def calculate(self):
         if self.packet_type_id == self.SUM_ID:
             return sum([sp.calculate() for sp in self.subpackets])
@@ -104,11 +99,11 @@ class Packet:
         elif self.packet_type_id == self.LITERAL_ID:
             return self.packet_value
         elif self.packet_type_id == self.GTHAN_ID:
-            return 1 if self.subpackets[0].calculate() > self.subpackets[1].calculate() else 0
+            return int(self.subpackets[0].calculate() > self.subpackets[1].calculate())
         elif self.packet_type_id == self.LTHAN_ID:
-            return 1 if self.subpackets[0].calculate() < self.subpackets[1].calculate() else 0
+            return int(self.subpackets[0].calculate() < self.subpackets[1].calculate())
         elif self.packet_type_id == self.EQUAL_ID:
-            return 1 if self.subpackets[0].calculate() == self.subpackets[1].calculate() else 0
+            return int(self.subpackets[0].calculate() == self.subpackets[1].calculate())
         else:
             raise NotImplementedError
 
