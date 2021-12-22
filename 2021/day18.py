@@ -52,9 +52,14 @@ def handle_explode(pair, coord):
     idx_right = coord.copy() if not all([c == 1 for c in coord]) else None
 
     if idx_left is not None:
-        idx_left[len(idx_left) - idx_left[::-1].index(1) - 1] = 0
+        idx_left = coord[:len(idx_left) - idx_left[::-1].index(1) - 1] + [1]
+        while isinstance(get_sublist_elem(pair, idx_left), list):
+            idx_left += [1]
     if idx_right is not None:
-        idx_right[len(idx_right) - idx_right[::-1].index(0) - 1] = 1
+        idx_right = coord[:len(idx_right) - idx_right[::-1].index(0) - 1] + [1]
+        while isinstance(get_sublist_elem(pair, idx_right), list):
+            idx_right += [0]
+        # idx_right[len(idx_right) - idx_right[::-1].index(0) - 1] = 1
 
     # print('Left:', idx_left, ':', get_sublist_elem(pair, idx_left) if idx_left is not None else 0)
     # print('Right:', idx_right, ':', get_sublist_elem(pair, idx_right) if idx_right is not None else 'N/A')
@@ -97,8 +102,8 @@ def add(p1, p2):
 def tests():
     assert handle_explode([[[[[9, 8], 1], 2], 3], 4], [0, 0, 0, 0]) == [[[[0, 9], 2], 3], 4]
     assert handle_explode([7, [6, [5, [4, [3, 2]]]]], [1, 1, 1, 1]) == [7, [6, [5, [7, 0]]]]
-    # assert handle_explode([[3, [2, [1, [7, 3]]]], [6, [5, [4, [3, 2]]]]], [0, 1, 1, 1]) == [[3, [2, [8, 0]]], [9, [5, [4, [3, 2]]]]]
-    # assert handle_explode([[3, [2, [8, 0]]], [9, [5, [4, [3, 2]]]]], [1, 1, 1, 1]) == [[3, [2, [8, 0]]], [9, [5, [7, 0]]]]
+    assert handle_explode([[3, [2, [1, [7, 3]]]], [6, [5, [4, [3, 2]]]]], [0, 1, 1, 1]) == [[3, [2, [8, 0]]], [9, [5, [4, [3, 2]]]]]
+    assert handle_explode([[3, [2, [8, 0]]], [9, [5, [4, [3, 2]]]]], [1, 1, 1, 1]) == [[3, [2, [8, 0]]], [9, [5, [7, 0]]]]
 
     assert handle_split([[[[0, 7], 4], [15, [0, 13]]], [1, 1]], [0, 1, 0]) == [[[[0, 7], 4], [[7, 8], [0, 13]]], [1, 1]]
     assert handle_split([[[[0, 7], 4], [[7, 8], [0, 13]]], [1, 1]], [0, 1, 1, 1]) == [[[[0, 7], 4], [[7, 8], [0, [6, 7]]]], [1, 1]]
