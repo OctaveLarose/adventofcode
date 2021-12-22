@@ -1,6 +1,9 @@
 #!/usr/bin/python
 from typing import Tuple, Dict
 
+OVERSHOT = -1
+UNDERSHOT = -2
+FELLTHROUGH = -3
 
 def update_system(pos: Dict[str, int], velocity: Dict[str, int]):
     pos['x'] += velocity['x']
@@ -33,29 +36,29 @@ def shoot(velocity: Dict[str, int], target_area: Tuple[Tuple[int, ...]]):
     if is_in_target_area(positions[-1], target_area):
         return max([pos['y'] for pos in positions])
     elif has_overshot(positions[-1], target_area):
-        return -1
+        return OVERSHOT
     elif has_undershot(positions[-1], target_area):
-        return -2
+        return UNDERSHOT
     else:
-        return -3
+        return FELLTHROUGH
 
 
 def adjust_repeatedly(target_area):
-    velocity = {'x': 0, 'y': 100}
+    velocity = {'x': 0, 'y': 75000}
     prev_res = None
     while True:
         res = shoot(velocity, target_area)
-
+        print(velocity)
         if res >= 0:
             return velocity['y']
-        elif res == -1:
+        elif res == OVERSHOT:
             velocity['x'] -= 1
-        elif res == -2:
+        elif res == UNDERSHOT:
             velocity['x'] += 1
-        elif res == -3:
+        elif res == FELLTHROUGH:
             velocity['y'] -= 1
 
-        if (prev_res == -1 and res == -2) or (prev_res == -2 and res == -1):
+        if (prev_res == OVERSHOT and res == UNDERSHOT) or (prev_res == UNDERSHOT and res == OVERSHOT):
             velocity['y'] -= 1
         prev_res = res
 
@@ -65,7 +68,7 @@ def main():
     # input_text = "target area: x=20..30, y=-10..-5"
     target_coords = tuple([tuple(int(v) for v in c[2:].split("..")) for c in input_text.replace("target area: ", "").split(", ")])
 
-    # velocity = {'x': 6, 'y': 100}
+    # velocity = {'x': 17, 'y': -4}
     # print(velocity, ":", shoot(velocity, target_coords))
 
     print(adjust_repeatedly(target_coords))
