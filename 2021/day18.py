@@ -1,5 +1,7 @@
 #!/usr/bin/python
 import ast
+import copy
+import itertools
 import math
 
 SHOULD_EXPLODE = 1
@@ -76,7 +78,7 @@ def handle_split(pair, coord):
 
 
 def add(p1, p2):
-    curr = [p1] + [p2]
+    curr = [copy.deepcopy(p1)] + [copy.deepcopy(p2)]
     res = None
     while res != NOTHING_NEEDED:
         c, res = analyse_list(curr, [], SHOULD_EXPLODE)
@@ -96,38 +98,11 @@ def repeated_add(pairs):
     return get_magnitude(s)
 
 
-def run_tests():
-    assert handle_explode([[[[[9, 8], 1], 2], 3], 4], [0, 0, 0, 0]) == [[[[0, 9], 2], 3], 4]
-    assert handle_explode([7, [6, [5, [4, [3, 2]]]]], [1, 1, 1, 1]) == [7, [6, [5, [7, 0]]]]
-    assert handle_explode([[3, [2, [1, [7, 3]]]], [6, [5, [4, [3, 2]]]]], [0, 1, 1, 1]) == [[3, [2, [8, 0]]], [9, [5, [4, [3, 2]]]]]
-    assert handle_explode([[3, [2, [8, 0]]], [9, [5, [4, [3, 2]]]]], [1, 1, 1, 1]) == [[3, [2, [8, 0]]], [9, [5, [7, 0]]]]
-    assert handle_explode([[[[0, 7], 4], [7, [[8, 4], 9]]], [1, 1]], [0, 1, 1, 0]) == [[[[0, 7], 4], [15, [0, 13]]], [1, 1]]
-
-    assert handle_split([[[[0, 7], 4], [15, [0, 13]]], [1, 1]], [0, 1, 0]) == [[[[0, 7], 4], [[7, 8], [0, 13]]], [1, 1]]
-    assert handle_split([[[[0, 7], 4], [[7, 8], [0, 13]]], [1, 1]], [0, 1, 1, 1]) == [[[[0, 7], 4], [[7, 8], [0, [6, 7]]]], [1, 1]]
-
-    assert add([[[[4, 3], 4], 4], [7, [[8, 4], 9]]], [1, 1]) == [[[[0, 7], 4], [[7, 8], [6, 0]]], [8, 1]]
-    assert add([[[0, [4, 5]], [0, 0]], [[[4, 5], [2, 6]], [9, 5]]], [7, [[[3, 7], [4, 3]], [[6, 3], [8, 8]]]]) == [
-        [[[4, 0], [5, 4]], [[7, 7], [6, 0]]], [[8, [7, 7]], [[7, 9], [5, 0]]]]
-    assert add([[[[4, 0], [5, 4]], [[7, 7], [6, 0]]], [[8, [7, 7]], [[7, 9], [5, 0]]]], [[2, [[0, 8], [3, 4]]], [[[6, 7], 1], [7, [1, 6]]]]) == [
-        [[[6, 7], [6, 7]], [[7, 7], [0, 7]]], [[[8, 7], [7, 7]], [[8, 8], [8, 0]]]]
-    assert add([[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]], [2,9]) == [[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]
-    assert add([[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]], [1,[[[9,3],9],[[9,0],[0,7]]]]) == [[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]
-
-    assert add([[[[7, 0], [7, 7]], [[7, 7], [7, 8]]], [[[7, 7], [8, 8]], [[7, 7], [8, 7]]]],
-               [7, [5, [[3, 8], [1, 4]]]]) == [[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]
-
-
-
-
 def main():
     pairs = [ast.literal_eval(expr) for expr in open("inputs/input18").read().splitlines()]
-    # pairs = [ast.literal_eval(expr) for expr in open("inputs/tests/testinput18").read().splitlines()]
-
-    run_tests()
 
     print("Part 1:", repeated_add(pairs))
-    # print("Part 2:", get_max_magn())
+    print("Part 2:", max([get_magnitude(add(a, b)) for a, b in list(itertools.permutations(pairs, 2))]))
 
 
 if __name__ == "__main__":
