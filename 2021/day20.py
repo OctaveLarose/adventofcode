@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import itertools
+from functools import reduce
 
 
 def enhance(inp, algo):
@@ -14,15 +15,7 @@ def enhance_n_times(inp, algo, n):
 
 def map_to_coords(inp):
     center = (len(inp[0]) // 2, len(inp) // 2)
-    coords = []
-
-    # TODO use itertools/zip
-    for y, l in enumerate(inp):
-        for x, _ in enumerate(l):
-            if inp[y][x] == 1:
-                coords.append((x - center[0], y - center[1]))
-
-    return coords
+    return [(x - center[0], y - center[1]) for x, y in itertools.product(range(len(inp)), range(len(inp))) if inp[y][x] == 1]
 
 
 def draw_map(coords):
@@ -31,9 +24,8 @@ def draw_map(coords):
     center_x += 1 if center_x % 2 != 0 else 0
     center_y += 1 if center_y % 2 != 0 else 0
 
-    for y in range(-center_y, center_y + 1):
-        for x in range(-center_x, center_x + 1):
-            print('#' if (x, y) in coords else '.', end='' if x != center_x else '\n')
+    for y, x in itertools.product(range(-center_x, center_x + 1), range(-center_y, center_y + 1)):
+        print('#' if (x, y) in coords else '.', end='' if x != center_x else '\n')
 
 
 def main():
