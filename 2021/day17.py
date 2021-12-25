@@ -74,16 +74,23 @@ def adjust_repeatedly(target_area):
         prev_res = res
 
 
+def get_y_t(ini_y, t):
+    if t <= ini_y:
+        return t * (t + 1) // 2
+    else:
+        return (ini_y * (ini_y + 1) - (t - ini_y) * ((t - ini_y) + 1)) // 2
+
+
+def part1(target_area):
+    return (-target_area[1][0] - 1) * (-target_area[1][0]) // 2
+
+
 def main():
     input_text = open("inputs/input17").read()
     # input_text = "target area: x=20..30, y=-10..-5"
     target_coords = tuple([tuple(int(v) for v in c[2:].split("..")) for c in input_text.replace("target area: ", "").split(", ")])
 
-    # velocity = {'x': 17, 'y': -4}
-    # velocity = {'x': 6, 'y': 9}
-    # print(velocity, ":", shoot(velocity, target_coords))
-
-    print(adjust_repeatedly(target_coords))
+    print(part1(target_coords))
 
 
 if __name__ == "__main__":
