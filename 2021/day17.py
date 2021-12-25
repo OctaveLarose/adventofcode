@@ -5,6 +5,7 @@ OVERSHOT = -1
 UNDERSHOT = -2
 FELLTHROUGH = -3
 
+
 def update_system(pos: Dict[str, int], velocity: Dict[str, int]):
     pos['x'] += velocity['x']
     pos['y'] += velocity['y']
@@ -44,7 +45,7 @@ def shoot(velocity: Dict[str, int], target_area: Tuple[Tuple[int, ...]]):
 
 
 def adjust_repeatedly(target_area):
-    velocity = {'x': 0, 'y': 75000}
+    velocity = {'x': 0, 'y': 15000}
     prev_res = None
     while True:
         res = shoot(velocity, target_area)
@@ -56,6 +57,19 @@ def adjust_repeatedly(target_area):
         elif res == UNDERSHOT:
             velocity['x'] += 1
         elif res == FELLTHROUGH:
+            sub_res = None
+            while sub_res != UNDERSHOT:
+                # print("Undershot hunt:", velocity)
+                velocity['x'] -= 1
+                sub_res = shoot(velocity, target_area)
+                if sub_res >= 0:
+                    return velocity['y']
+            while sub_res != OVERSHOT:
+                # print("Overshot hunt:", velocity)
+                velocity['x'] += 1
+                sub_res = shoot(velocity, target_area)
+                if sub_res >= 0:
+                    return velocity['y']
             velocity['y'] -= 1
 
         if (prev_res == OVERSHOT and res == UNDERSHOT) or (prev_res == UNDERSHOT and res == OVERSHOT):
