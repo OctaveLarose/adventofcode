@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import itertools
+import math
 from functools import reduce
 
 
@@ -20,18 +21,30 @@ def check_pixel(coord, inp, algo):
 
 
 def enhance(inp, algo):
+    # pixels_to_check = set()
+    # for p in inp:
+    #     pixels_to_check.update(get_surrounding_coords(*p))
+
     new_inp = set()
-    for p in inp:
-        surr = get_surrounding_coords(*p)
-        for s in surr:
-            if check_pixel(s, inp, algo):
-                new_inp.add(s)
+    max_x = max([a[0] for a in inp]) + 15
+    max_y = max([a[1] for a in inp]) + 15
+    min_x = min([a[0] for a in inp]) - 15
+    min_y = min([a[1] for a in inp]) - 15
+
+    print(min_x, "to", max_x, ";", min_y, "to", max_y)
+    for y in range(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
+            if check_pixel((x, y), inp, algo):
+                new_inp.add((x, y))
+    # new_inp = [s for s in pixels_to_check if check_pixel(s, inp, algo)]
     return new_inp
 
 
 def enhance_n_times(inp, algo, n):
     for _ in range(n):
         inp = enhance(inp, algo)  # TODO use reduce
+        # draw_map(inp)
+        # input()
     return inp
 
 
@@ -65,7 +78,9 @@ def main():
     coords = map_to_coords(inp)
     enhanced_coords = enhance_n_times(coords, algo, 2)
     draw_map(enhanced_coords)
-    print("Part 1:", len(set(enhanced_coords)))
+    ugly_coords = [e for e in enhanced_coords if -57 < e[0] < 57 and -57 < e[1] < 57]
+    draw_map(ugly_coords)
+    print("Part 1:", len(ugly_coords))
 
 
 if __name__ == "__main__":
