@@ -10,49 +10,65 @@ def get_surrounding_coords(x, y):
             (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)]
 
 
-def check_pixel(coord, inp, algo, map_bounds, is_infinite_map_lit):
+def check_pixel(coord, inp, algo):
     surr = get_surrounding_coords(*coord)
     idx = 0
     for i in range(0, 9):
         idx += 2 ** (8 - i) if surr[i] in inp else 0
-        if is_infinite_map_lit:
-            if not map_bounds[0][0] - 1 <= surr[i][0] <= map_bounds[0][1] + 1 and not map_bounds[1][0] - 1 <= surr[i][1] <= map_bounds[1][1] + 1:
-                idx += 2 ** (8 - i)
     return algo[idx] == '#'
 
 
-def str_to_bin(s):
-    algo = open("inputs/input20").read().split('\n\n')[0]
-    nbr = 0
-    for i in range(0, 9):
-        nbr += 2 ** (8 - i) if s[i] == '1' else 0
-    return nbr, algo[nbr]
-
-
-def enhance(inp, algo, is_infinite_map_lit):
+def enhance(inp, algo, has_padded):
     max_x = max([a[0] for a in inp])
     max_y = max([a[1] for a in inp])
     min_x = min([a[0] for a in inp])
     min_y = min([a[1] for a in inp])
 
-    if is_infinite_map_lit:
-        print('bp')
-
     new_inp = set()
-    for y in range(min_y - 1, max_y + 2):
-        for x in range(min_x - 1, max_x + 2):
-            if check_pixel((x, y), inp, algo, ((min_x, max_x), (min_y, max_y)), is_infinite_map_lit):
-                new_inp.add((x, y))
+    if not has_padded:
+        for y in range(min_y - 1, max_y + 2):
+            for x in range(min_x - 1, max_x + 2):
+                if check_pixel((x, y), inp, algo):
+                    new_inp.add((x, y))
+    else:
+        for y in range(min_y + 1, max_y):
+            for x in range(min_x + 1, max_x):
+                if check_pixel((x, y), inp, algo):
+                    new_inp.add((x, y))
     return new_inp
 
 
+def pad(inp):
+    max_x = max([a[0] for a in inp])
+    max_y = max([a[1] for a in inp])
+    min_x = min([a[0] for a in inp])
+    min_y = min([a[1] for a in inp])
+
+    for x in range(min_x - 4, max_x + 3):
+        for i in range(2):
+            inp.add((x + 1, min_y - 2 - i))
+            inp.add((x + 1, max_y + 2 + i))
+        # inp.add((x + 1, min_y - 2))
+        # inp.add((x + 1, max_y + 2))
+
+    for y in range(min_y - 4, max_y + 3):
+        # inp.add((min_x - 2, y + 1))
+        # inp.add((max_x + 2, y + 1))
+        for i in range(2):
+            inp.add((min_x - 2 - i, y + 1))
+            inp.add((max_x + 2 + i, y + 1))
+    return inp
+
+
 def enhance_n_times(inp, algo, n):
-    is_infinite_map_lit = False
+    should_pad = False
     for i in range(n):
-        inp = enhance(inp, algo, is_infinite_map_lit)
+        inp = enhance(inp, algo, should_pad)
         print(f'{i + 1}/{n} complete.')
-        if algo[0] == '#':
-            is_infinite_map_lit = not is_infinite_map_lit
+        if algo[0] == '#' and algo[511] == '.':
+            should_pad = not should_pad
+        if should_pad:
+            inp = pad(inp)
     return inp
 
 
@@ -74,7 +90,7 @@ def draw_map(coords):
     center_x += 1 if center_x % 2 != 0 else 0
     center_y += 1 if center_y % 2 != 0 else 0
 
-    for y, x in itertools.product(range(-center_x, center_x + 1), range(-center_y, center_y + 1)):
+    for y, x in itertools.product(range(-center_x - 2, center_x + 2), range(-center_y - 2, center_y + 2)):
         print('#' if (x, y) in coords else '.', end='' if x != center_x else '\n')
 
 
