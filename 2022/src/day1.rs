@@ -49,6 +49,8 @@ pub fn run() {
     let lines = BufReader::new(file).lines();
     let mut elves = get_elves_calories(lines);
 
+    println!("Day 1: ");
     println!("Part 1: {}", part1(&elves));
     println!("Part 2: {}", part2(&mut elves));
+    println!("----------")
 }
