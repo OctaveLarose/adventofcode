@@ -27,21 +27,8 @@ fn part1(elves_calories: &Vec<usize>) -> usize {
 }
 
 fn part2(elves_calories: &mut Vec<usize>) -> usize {
-    let mut max_calories_sum = 0;
-    const NBR_ELVES: i32 = 3;
-
-    for _ in 0..NBR_ELVES {
-        let index_of_max: Option<usize> = elves_calories
-            .iter()
-            .enumerate()
-            .max_by(|(_, a), (_, b)| a.cmp(b))
-            .map(|(index, _)| index);
-
-        max_calories_sum += elves_calories.get(index_of_max.unwrap()).unwrap();
-        elves_calories.remove(index_of_max.unwrap());
-    }
-
-    max_calories_sum
+    elves_calories.sort();
+    elves_calories[elves_calories.len() - 3..].iter().sum::<usize>()
 }
 
 pub fn run() {
