@@ -19,25 +19,25 @@ fn get_elves_calories(lines: Lines<BufReader<File>>) -> Vec<usize> {
             }
         }
     }
+    elves.sort();
     elves
 }
 
-fn part1(elves_calories: &Vec<usize>) -> usize {
-    *elves_calories.iter().max().unwrap()
+fn part1(elves_calories: &Vec<usize>) -> &usize {
+    elves_calories.last().unwrap()
 }
 
-fn part2(elves_calories: &mut Vec<usize>) -> usize {
-    elves_calories.sort();
+fn part2(elves_calories: Vec<usize>) -> usize {
     elves_calories[elves_calories.len() - 3..].iter().sum::<usize>()
 }
 
 pub fn run() {
     let file = File::open("inputs/day1").unwrap();
     let lines = BufReader::new(file).lines();
-    let mut elves = get_elves_calories(lines);
+    let elves = get_elves_calories(lines);
 
     println!("Day 1: ");
     println!("Part 1: {}", part1(&elves));
-    println!("Part 2: {}", part2(&mut elves));
+    println!("Part 2: {}", part2(elves));
     println!("----------")
 }
