@@ -26,7 +26,7 @@ fn strat_1(pair: &(char, char)) -> usize {
 
     if opponent as u8 == ours {
         3 + bonus
-    } else if opponent == ours + 1 || (ours == 2 && opponent == 0) {
+    } else if (ours + 1) % 3 == opponent {
         0 + bonus
     } else {
         6 + bonus
