@@ -1,12 +1,5 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
-use crate::day2::MatchResult::{DRAW, LOSS, WIN};
-
-enum MatchResult {
-    WIN,
-    LOSS,
-    DRAW
-}
 
 fn get_pairs(lines: Lines<BufReader<File>>) -> Vec<(char, char)> {
     let mut pairs: Vec<(char, char)> = Vec::new();
@@ -21,16 +14,6 @@ fn get_pairs(lines: Lines<BufReader<File>>) -> Vec<(char, char)> {
     pairs
 }
 
-fn get_round_result(opponent: u8, ours: u8) -> MatchResult {
-    if opponent as u8 == ours {
-        DRAW
-    } else if opponent == ours + 1 || (ours == 2 && opponent == 0) {
-        LOSS
-    } else {
-        WIN
-    }
-}
-
 fn get_bonus_from_choice(choice: u8) -> usize {
     (choice % 4 + 1) as usize
 }
@@ -41,45 +24,24 @@ fn strat_1(pair: &(char, char)) -> usize {
     let ours = *char_ours as u8 % 4;
     let bonus = get_bonus_from_choice(ours);
 
-    match get_round_result(opponent, ours) {
-        WIN=> 6 + bonus,
-        LOSS => 0 + bonus,
-        DRAW => 3 + bonus
-    }
-}
-
-fn get_winning_choice(opponent: u8) -> u8 {
-    match opponent {
-        0 => 1,
-        1 => 2,
-        2 => 0,
-        _ => { panic!("Unreachable") }
-    }
-}
-
-fn get_losing_choice(opponent: u8) -> u8 {
-    match opponent {
-        0 => 2,
-        1 => 0,
-        2 => 1,
-        _ => { panic!("Unreachable") }
+    if opponent as u8 == ours {
+        3 + bonus
+    } else if opponent == ours + 1 || (ours == 2 && opponent == 0) {
+        0 + bonus
+    } else {
+        6 + bonus
     }
 }
 
 fn strat_2(pair: &(char, char)) -> usize {
     let (char_opponent, char_ours) = pair;
     let opponent = *char_opponent as u8 - ('A' as u8);
-    let exp_match_result = match char_ours {
-        'X' => LOSS,
-        'Y' => DRAW,
-        'Z' => WIN,
-        _ => panic!("Unreachable")
-    };
 
-    match exp_match_result {
-        WIN=> 6 + get_bonus_from_choice(get_winning_choice(opponent)),
-        LOSS => 0 + get_bonus_from_choice(get_losing_choice(opponent)),
-        DRAW => 3 + get_bonus_from_choice(opponent)
+    match char_ours {
+        'Y' => 3 + get_bonus_from_choice(opponent),
+        'Z'=> 6 + get_bonus_from_choice((opponent + 1) % 3),
+        'X' => 0 + get_bonus_from_choice((opponent + 2) % 3),
+        _ => { panic!("Unreachable")}
     }
 }
 
