@@ -1,18 +1,5 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader, Lines};
-
-fn get_pairs(lines: Lines<BufReader<File>>) -> Vec<(char, char)> {
-    let mut pairs: Vec<(char, char)> = Vec::new();
-
-    for line_res in lines {
-        let line = line_res.unwrap();
-        let split = line.split_whitespace().collect::<Vec<&str>>();
-        // Horrendous parsing.
-        pairs.push((split.get(0).unwrap().chars().next().unwrap(), split.get(1).unwrap().chars().next().unwrap()));
-    }
-
-    pairs
-}
+use std::io::{BufRead, BufReader};
 
 fn get_bonus_from_choice(choice: u8) -> usize {
     (choice % 4 + 1) as usize
@@ -45,9 +32,14 @@ fn strat_2(pair: &(char, char)) -> usize {
     }
 }
 
+fn get_pair_from_line(line_res: Result<String, std::io::Error>) -> (char, char) {
+    let line = line_res.unwrap();
+    (line.chars().nth(0).unwrap(), line.chars().nth(2).unwrap())
+}
+
 pub fn run() {
     let file = File::open("inputs/day2").unwrap();
-    let pairs  = get_pairs(BufReader::new(file).lines());
+    let pairs: Vec<(char, char)> = BufReader::new(file).lines().map(get_pair_from_line).collect();
 
     println!("Day 2: ");
     println!("Part 1: {}", pairs.iter().map(strat_1).sum::<usize>());
