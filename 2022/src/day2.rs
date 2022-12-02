@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
+use crate::day2::MatchResult::{DRAW, LOSS, WIN};
 
 enum MatchResult {
     WIN,
@@ -22,24 +23,63 @@ fn get_pairs(lines: Lines<BufReader<File>>) -> Vec<(char, char)> {
 
 fn get_round_result(opponent: u8, ours: u8) -> MatchResult {
     if opponent as u8 == ours {
-        MatchResult::DRAW
+        DRAW
     } else if opponent == ours + 1 || (ours == 2 && opponent == 0) {
-        MatchResult::LOSS
+        LOSS
     } else {
-        MatchResult::WIN
+        WIN
     }
+}
+
+fn get_bonus_from_choice(choice: u8) -> usize {
+    (choice % 4 + 1) as usize
 }
 
 fn strat_1(pair: &(char, char)) -> usize {
     let (char_opponent, char_ours) = pair;
     let opponent = *char_opponent as u8 - ('A' as u8);
     let ours = *char_ours as u8 % 4;
-    let bonus = (*char_ours as u8 % 4 + 1) as usize;
+    let bonus = get_bonus_from_choice(ours);
 
     match get_round_result(opponent, ours) {
-        MatchResult::WIN=> 6 + bonus,
-        MatchResult::LOSS => 0 + bonus,
-        MatchResult::DRAW => 3 + bonus
+        WIN=> 6 + bonus,
+        LOSS => 0 + bonus,
+        DRAW => 3 + bonus
+    }
+}
+
+fn get_winning_choice(opponent: u8) -> u8 {
+    match opponent {
+        0 => 1,
+        1 => 2,
+        2 => 0,
+        _ => { panic!("Unreachable") }
+    }
+}
+
+fn get_losing_choice(opponent: u8) -> u8 {
+    match opponent {
+        0 => 2,
+        1 => 0,
+        2 => 1,
+        _ => { panic!("Unreachable") }
+    }
+}
+
+fn strat_2(pair: &(char, char)) -> usize {
+    let (char_opponent, char_ours) = pair;
+    let opponent = *char_opponent as u8 - ('A' as u8);
+    let exp_match_result = match char_ours {
+        'X' => LOSS,
+        'Y' => DRAW,
+        'Z' => WIN,
+        _ => panic!("Unreachable")
+    };
+
+    match exp_match_result {
+        WIN=> 6 + get_bonus_from_choice(get_winning_choice(opponent)),
+        LOSS => 0 + get_bonus_from_choice(get_losing_choice(opponent)),
+        DRAW => 3 + get_bonus_from_choice(opponent)
     }
 }
 
@@ -49,6 +89,6 @@ pub fn run() {
 
     println!("Day 2: ");
     println!("Part 1: {}", pairs.iter().map(strat_1).sum::<usize>());
-    // println!("Part 2: {}", pairs.iter().map(strat_2).sum::<usize>());
+    println!("Part 2: {}", pairs.iter().map(strat_2).sum::<usize>());
     println!("----------")
 }
