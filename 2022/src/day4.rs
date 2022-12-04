@@ -11,31 +11,15 @@ fn pair_maker(line: &String) -> ((usize, usize), (usize, usize)) {
 }
 
 fn part1(pairs: &Vec<((usize, usize), (usize, usize))>) -> usize {
-    let mut sum = 0;
-
-    for p in pairs {
-        if (p.0.0 <= p.1.0 && p.0.1 >= p.1.1) || (p.1.0 <= p.0.0 && p.1.1 >= p.0.1)  {
-            sum += 1;
-        }
-    }
-    sum
+    let does_contain = | p: &((usize, usize), (usize, usize)) | (p.0.0 <= p.1.0 && p.0.1 >= p.1.1) || (p.1.0 <= p.0.0 && p.1.1 >= p.0.1);
+    pairs.iter().map(does_contain).filter(|&n| n ).count()
 }
 
 fn part2(pairs: &Vec<((usize, usize), (usize, usize))>) -> usize {
-    let mut sum = 0;
-
-    for p in pairs {
-        if p.0.0 >= p.1.0 && p.0.0 <= p.1.1 {
-            sum += 1;
-        } else if p.0.1 >= p.1.0 && p.0.1 <= p.1.1 {
-            sum += 1;
-        } else if p.1.0 >= p.0.0 && p.1.0 <= p.0.1 {
-            sum += 1;
-        } else if p.1.1 >= p.0.0 && p.1.1 <= p.0.1 {
-            sum += 1;
-        }
-    }
-    sum
+    let does_intersect = | p: &((usize, usize), (usize, usize)) | {
+        (p.0.0 >= p.1.0 && p.0.0 <= p.1.1) || (p.0.1 >= p.1.0 && p.0.1 <= p.1.1) || (p.1.0 >= p.0.0 && p.1.0 <= p.0.1) || (p.1.1 >= p.0.0 && p.1.1 <= p.0.1)
+    };
+    pairs.iter().map(does_intersect).filter(|&n| n ).count()
 }
 
 pub fn run() {
