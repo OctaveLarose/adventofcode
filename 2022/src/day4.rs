@@ -27,7 +27,7 @@ pub fn run() {
     let lines = BufReader::new(file).lines().map(|x| x.unwrap()).collect::<Vec<String>>();
     let pairs = lines.iter().map(pair_maker).collect::<Vec<((usize, usize), (usize, usize))>>();
 
-    println!("Day 3: ");
+    println!("Day 4: ");
     println!("Part 1: {}", part1(&pairs));
     println!("Part 2: {}", part2(&pairs));
     println!("----------")
