@@ -16,9 +16,7 @@ impl CargoManager {
 }
 
 fn parse(lines: Vec<String>, cargo_manager: &mut CargoManager) -> () {
-    let nbr_stacks = lines.iter().next().unwrap().len() / 4;
-
-    for i in 0..nbr_stacks {
+    for i in 0..cargo_manager.stacks.len() {
         for l in &lines {
             if l.eq(" ") {
                 continue;
@@ -83,11 +81,11 @@ fn part1(cargo_manager: &mut CargoManager) -> () {
 
 
 pub fn run() {
-    let file = File::open("inputs/testday5").unwrap();
-    // let lines = BufReader::new(file).lines();
+    let file = File::open("inputs/day5").unwrap();
     let lines = BufReader::new(file).lines().map(|x| format!("{} ", x.unwrap())).collect::<Vec<String>>();
     let mut cargo_manager = CargoManager {stacks: vec![], rules: vec![]};
-    cargo_manager.init(3);
+    cargo_manager.init(lines.iter().next().unwrap().len() / 4);
+
     parse(lines, &mut cargo_manager);
 
     // for s in stacks {
