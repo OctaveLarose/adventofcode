@@ -1,16 +1,24 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::iter;
 
 struct CargoManager {
     stacks: Vec<Vec<char>>,
     rules: Vec<(u32, u32, u32)>
 }
 
+impl CargoManager {
+    pub fn init(&mut self, nbr_stacks: usize) {
+        self.stacks = iter::repeat_with(|| Vec::<char>::new())
+            .take(nbr_stacks)
+            .collect();
+    }
+}
+
 fn parse(lines: Vec<String>, cargo_manager: &mut CargoManager) -> () {
     let nbr_stacks = lines.iter().next().unwrap().len() / 4;
 
     for i in 0..nbr_stacks {
-        cargo_manager.stacks.push(Vec::new());
         for l in &lines {
             if l.eq(" ") {
                 continue;
@@ -23,7 +31,7 @@ fn parse(lines: Vec<String>, cargo_manager: &mut CargoManager) -> () {
             }
 
             if char != ' ' {
-                cargo_manager.stacks.last().unwrap().insert(0, char);
+                cargo_manager.stacks.get_mut(i).unwrap().insert(0, char);
             }
         }
     }
@@ -32,7 +40,6 @@ fn parse(lines: Vec<String>, cargo_manager: &mut CargoManager) -> () {
     loop {
         let lol = lines_iter.next().unwrap();
         if lol.len() == 1 {
-            lines_iter.next();
             break;
         }
     }
@@ -49,17 +56,29 @@ fn parse(lines: Vec<String>, cargo_manager: &mut CargoManager) -> () {
 
 
 fn part1(cargo_manager: &mut CargoManager) -> () {
-    for instr in &cargo_manager.rules {
-        for _ in 0..instr.1 {
-            let val = cargo_manager.stacks.get(instr.1 as usize).unwrap().pop().unwrap();
-            cargo_manager.stacks.get(instr.0 as usize).unwrap().push(val);
-        }
-        println!("{:?}", instr);
-    }
+    // for s in &cargo_manager.stacks {
+    //     println!("{:?}", s);
+    // }
+    //
+    // for s in &cargo_manager.rules {
+    //     println!("{:?}", s);
+    // }
 
+    for instr in &cargo_manager.rules {
+        for _ in 0..instr.0 {
+            let val = cargo_manager.stacks.get_mut(instr.1 as usize - 1).unwrap().pop().unwrap();
+            cargo_manager.stacks.get_mut(instr.2 as usize - 1).unwrap().push(val);
+        }
+    }
+    // for s in &cargo_manager.stacks {
+    //     println!("ss{:?}", s);
+    // }
+
+    print!("Part 1: ");
     for s in &cargo_manager.stacks {
         print!("{}", s.last().unwrap());
     }
+    println!()
 }
 
 
@@ -68,6 +87,7 @@ pub fn run() {
     // let lines = BufReader::new(file).lines();
     let lines = BufReader::new(file).lines().map(|x| format!("{} ", x.unwrap())).collect::<Vec<String>>();
     let mut cargo_manager = CargoManager {stacks: vec![], rules: vec![]};
+    cargo_manager.init(3);
     parse(lines, &mut cargo_manager);
 
     // for s in stacks {
@@ -79,6 +99,6 @@ pub fn run() {
     // }
 
     println!("Day 5: ");
-    // part1(&stacks, &instructions);
+    part1(&mut cargo_manager);
     println!("----------")
 }
