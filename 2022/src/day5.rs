@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -48,8 +47,18 @@ fn parse(lines: Vec<String>) -> (Vec<Vec<char>>, Vec<(u32, u32, u32)>) {
 }
 
 
-fn part1() -> () {
+fn part1(stacks: &Vec<Vec<char>>, instructions: &Vec<(u32, u32, u32)>) -> () {
+    for instr in instructions {
+        for _ in 0..instr.1 {
+            let val = stacks.get(instr.1 as usize).unwrap().pop().unwrap();
+            stacks.get(instr.0 as usize).unwrap().push(val);
+        }
+        println!("{:?}", instr);
+    }
 
+    for s in stacks {
+        print!("{}", s.last().unwrap());
+    }
 }
 
 
@@ -59,14 +68,15 @@ pub fn run() {
     let lines = BufReader::new(file).lines().map(|x| format!("{} ", x.unwrap())).collect::<Vec<String>>();
     let (stacks, instructions) = parse(lines);
 
-    for s in stacks {
-        println!("{:?}", s);
-    }
+    // for s in stacks {
+    //     println!("{:?}", s);
+    // }
+    //
+    // for i in instructions {
+    //     println!("{:?}", i);
+    // }
 
-    for i in instructions {
-        println!("{:?}", i);
-    }
     println!("Day 5: ");
-    // println!("Part 1: {}", part1(&pairs));
+    part1(&stacks, &instructions);
     println!("----------")
 }
