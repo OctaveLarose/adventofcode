@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -27,7 +28,6 @@ fn parse(lines: Vec<String>) -> (Vec<Vec<char>>, Vec<(u32, u32, u32)>) {
     }
 
     let mut lines_iter = lines.iter();
-
     loop {
         let lol = lines_iter.next().unwrap();
         if lol.len() == 1 {
@@ -37,9 +37,10 @@ fn parse(lines: Vec<String>) -> (Vec<Vec<char>>, Vec<(u32, u32, u32)>) {
     }
 
     for instr_line in lines_iter {
-        let c1 = instr_line.chars().nth(5).unwrap() as u32 - '0' as u32;
-        let c2 = instr_line.chars().nth(12).unwrap() as u32 - '0' as u32;
-        let c3 = instr_line.chars().nth(17).unwrap() as u32 - '0' as u32;
+        let mut split = instr_line.split_whitespace();
+        let c1 = split.nth(1).unwrap().parse::<u32>().unwrap();
+        let c2 = split.nth(1).unwrap().parse::<u32>().unwrap();
+        let c3 = split.nth(1).unwrap().parse::<u32>().unwrap();
         instructions.push((c1, c2, c3));
     }
 
