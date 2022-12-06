@@ -2,11 +2,10 @@ use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-
-fn part1(buffer: &String) -> usize {
-    for i in 4..buffer.len() + 1 {
-        let slice = &buffer[i - 4..i];
-        if HashSet::<char>::from_iter(slice.chars()).len() == 4 {
+fn find_message(buffer: &String, len: usize) -> usize {
+    for i in len..buffer.len() + 1 {
+        let slice = &buffer[i - len..i];
+        if HashSet::<char>::from_iter(slice.chars()).len() == len {
             return i;
         }
     }
@@ -18,7 +17,7 @@ pub fn run() {
     let buffer = BufReader::new(file).lines().next().unwrap().unwrap();
 
     println!("Day 5: ");
-    println!("Part 1: {}", part1(&buffer));
-    // println!("Part 2: {}", part2(&buffer));
-    println!("----------")
+    println!("Part 1: {}", find_message(&buffer, 4));
+    println!("Part 2: {}", find_message(&buffer, 14));
+    println!("----------");
 }
