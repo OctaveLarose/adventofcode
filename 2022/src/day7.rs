@@ -42,21 +42,33 @@ impl TreeNode {
         Rc::new(RefCell::new(tree_node))
     }
 
-    pub fn get_total_size(&self) -> usize {
+    pub fn get_size(&self) -> usize {
         match self.node_type {
             FILE => self.value.unwrap(),
             DIR => {
-                let mut children_sum = 0;
-                for c in &self.children {
-                    let ch = c.borrow();
-                    // dbg!(&ch.name, &ch.value);
-                    children_sum += ch.get_total_size();
-                }
-                // let children_sum = self.children.iter().map(|c| c.borrow().get_total_size()).sum();
-                children_sum
-                // if children_sum < 100000 { children_sum } else { 0 }
+                self.children.iter().map(|c| c.borrow().get_size()).sum()
             }
         }
+    }
+
+    pub fn get_total_size_under_threshold(&self, threshold: usize) -> usize {
+        let mut sum = 0;
+
+        let size = self.get_size();
+        if size <= threshold {
+            sum += size
+        }
+
+        for c in &self.children {
+            let child = c.borrow();
+            if child.node_type == DIR {
+                let children_sum = child.get_total_size_under_threshold(threshold);
+                if children_sum <= threshold {
+                    sum += children_sum
+                }
+            }
+        }
+        sum
     }
 }
 
@@ -67,7 +79,6 @@ fn build_tree(lines: Vec<String>) -> Rc<RefCell<TreeNode>> {
 
     while lines_iter.peek().is_some() {
         let l = lines_iter.next().unwrap();
-        // dbg!(l);
 
         match &l[0..4] {
             "$ ls" => {
@@ -75,13 +86,17 @@ fn build_tree(lines: Vec<String>) -> Rc<RefCell<TreeNode>> {
                     let l = lines_iter.next().unwrap();
                     match &l[0..3] {
                         "dir" => {
-                            current_node.borrow_mut().children.push(TreeNode::new_dir(String::from(&l[4..]), Some(current_node.clone())))
+                            current_node.borrow_mut().children.push(
+                                TreeNode::new_dir(String::from(&l[4..]), Some(current_node.clone()))
+                            )
                         },
                         _ => {
                             let mut split = l.split_whitespace();
                             let size = split.next().unwrap().parse::<usize>().unwrap();
                             let name = split.next().unwrap();
-                            current_node.borrow_mut().children.push(TreeNode::new_file(String::from(name), size, current_node.clone()));
+                            current_node.borrow_mut().children.push(
+                                TreeNode::new_file(String::from(name), size, current_node.clone())
+                            );
                         }
                     }
                 }
@@ -92,8 +107,7 @@ fn build_tree(lines: Vec<String>) -> Rc<RefCell<TreeNode>> {
                     current_node = parent;
                 } else {
                     let current_node_clone = Rc::clone(&current_node);
-                    let children = &current_node_clone.borrow().children;
-                    for child_ref in children {
+                    for child_ref in &current_node_clone.borrow().children {
                         let child = child_ref.borrow();
                         if child.node_type == DIR && child.name.eq(&l[5..]) {
                             current_node = Rc::clone(&child_ref);
@@ -110,12 +124,12 @@ fn build_tree(lines: Vec<String>) -> Rc<RefCell<TreeNode>> {
 }
 
 pub fn run() {
-    let file = File::open("inputs/testday7").unwrap();
+    let file = File::open("inputs/day7").unwrap();
     let lines = BufReader::new(file).lines().map(|x| x.unwrap()).collect::<Vec<String>>();
 
     let tree = build_tree(lines);
 
     println!("Day 5: ");
-    println!("Part 1: {}", tree.borrow().get_total_size());
+    println!("Part 1: {}", tree.borrow().get_total_size_under_threshold(100000));
     println!("----------");
 }
