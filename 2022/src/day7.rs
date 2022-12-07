@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::cmp::min;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::rc::Rc;
@@ -42,21 +43,6 @@ impl TreeNode {
         Rc::new(RefCell::new(tree_node))
     }
 
-    pub fn print(&self) -> String {
-        if let Some(value) = self.value {
-            return format!("({}-{})", self.name, value.to_string());
-        } else {
-            return String::from(format!("{}[", self.name))
-                + &self
-                .children
-                .iter()
-                .map(|tn| tn.borrow().print())
-                .collect::<Vec<String>>()
-                .join(",")
-                + "]";
-        }
-    }
-
     pub fn get_size(&self) -> usize {
         match self.node_type {
             FILE => self.value.unwrap(),
@@ -84,8 +70,27 @@ impl TreeNode {
         correct_sizes
     }
 
-    pub fn get_total_size_under_threshold(&self, threshold: usize) -> usize {
-        return self.get_sizes_under_threshold(threshold).iter().sum();
+    pub fn get_sizes_over_threshold(&self, threshold: usize) -> Vec<usize> {
+        let mut correct_sizes = vec![];
+
+        let own_size = self.get_size();
+        if own_size >= threshold {
+            correct_sizes.push(own_size);
+        }
+
+        for c in &self.children {
+            if c.borrow().node_type == DIR {
+                let mut children_sizes = c.borrow().get_sizes_over_threshold(threshold);
+                correct_sizes.append(&mut children_sizes);
+            }
+        }
+
+        correct_sizes
+    }
+
+    pub fn find_smallest_dir_to_free(&self, total_disk_space: usize, memory_needed: usize) -> usize {
+        let min_deletion_needed = memory_needed - (total_disk_space - self.get_size());
+        *self.get_sizes_over_threshold(min_deletion_needed).iter().min().unwrap()
     }
 }
 
@@ -149,6 +154,7 @@ pub fn run() {
     // println!("{}", tree.borrow().print());
 
     println!("Day 5: ");
-    println!("Part 1: {}", tree.borrow().get_total_size_under_threshold(100000));
+    println!("Part 1: {}", tree.borrow().get_sizes_under_threshold(100000).iter().sum::<usize>());
+    println!("Part 2: {}", tree.borrow().find_smallest_dir_to_free(70000000, 30000000));
     println!("----------");
 }
