@@ -42,6 +42,21 @@ impl TreeNode {
         Rc::new(RefCell::new(tree_node))
     }
 
+    pub fn print(&self) -> String {
+        if let Some(value) = self.value {
+            return format!("({}-{})", self.name, value.to_string());
+        } else {
+            return String::from(format!("{}[", self.name))
+                + &self
+                .children
+                .iter()
+                .map(|tn| tn.borrow().print())
+                .collect::<Vec<String>>()
+                .join(",")
+                + "]";
+        }
+    }
+
     pub fn get_size(&self) -> usize {
         match self.node_type {
             FILE => self.value.unwrap(),
@@ -51,24 +66,26 @@ impl TreeNode {
         }
     }
 
-    pub fn get_total_size_under_threshold(&self, threshold: usize) -> usize {
-        let mut sum = 0;
+    pub fn get_sizes_under_threshold(&self, threshold: usize) -> Vec<usize> {
+        let mut correct_sizes = vec![];
 
-        let size = self.get_size();
-        if size <= threshold {
-            sum += size
+        let own_size = self.get_size();
+        if own_size <= threshold {
+            correct_sizes.push(own_size);
         }
 
         for c in &self.children {
-            let child = c.borrow();
-            if child.node_type == DIR {
-                let children_sum = child.get_total_size_under_threshold(threshold);
-                if children_sum <= threshold {
-                    sum += children_sum
-                }
+            if c.borrow().node_type == DIR {
+                let mut children_sizes = c.borrow().get_sizes_under_threshold(threshold);
+                correct_sizes.append(&mut children_sizes);
             }
         }
-        sum
+
+        correct_sizes
+    }
+
+    pub fn get_total_size_under_threshold(&self, threshold: usize) -> usize {
+        return self.get_sizes_under_threshold(threshold).iter().sum();
     }
 }
 
@@ -128,6 +145,8 @@ pub fn run() {
     let lines = BufReader::new(file).lines().map(|x| x.unwrap()).collect::<Vec<String>>();
 
     let tree = build_tree(lines);
+
+    // println!("{}", tree.borrow().print());
 
     println!("Day 5: ");
     println!("Part 1: {}", tree.borrow().get_total_size_under_threshold(100000));
