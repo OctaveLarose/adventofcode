@@ -16,7 +16,7 @@ pub fn run() {
     let file = File::open("inputs/day6").unwrap();
     let buffer = BufReader::new(file).lines().next().unwrap().unwrap();
 
-    println!("Day 5: ");
+    println!("Day 6: ");
     println!("Part 1: {}", find_message(&buffer, 4));
     println!("Part 2: {}", find_message(&buffer, 14));
     println!("----------");

@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::cmp::min;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::rc::Rc;
@@ -148,12 +147,9 @@ fn build_tree(lines: Vec<String>) -> Rc<RefCell<TreeNode>> {
 pub fn run() {
     let file = File::open("inputs/day7").unwrap();
     let lines = BufReader::new(file).lines().map(|x| x.unwrap()).collect::<Vec<String>>();
-
     let tree = build_tree(lines);
 
-    // println!("{}", tree.borrow().print());
-
-    println!("Day 5: ");
+    println!("Day 7: ");
     println!("Part 1: {}", tree.borrow().get_sizes_under_threshold(100000).iter().sum::<usize>());
     println!("Part 2: {}", tree.borrow().find_smallest_dir_to_free(70000000, 30000000));
     println!("----------");
