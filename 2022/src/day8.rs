@@ -2,7 +2,6 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::usize;
 
-#[derive(Debug)]
 struct TreeMap {
     length: usize,
     trees: Vec<u8>
@@ -49,77 +48,78 @@ impl TreeMap {
         }
         false
     }
-}
 
-fn get_highest_scenic_score(tree_map: &TreeMap) -> usize {
-    let mut highest_scenic_seen = 0;
-    let mut tmp_idx: usize;
+    fn get_highest_scenic_score(&self) -> usize {
+        let mut highest_scenic_seen = 0;
+        let mut tmp_idx: usize;
 
-    for (cur_idx, tree_height) in tree_map.trees.iter().enumerate() {
-        tmp_idx = cur_idx;
-        let mut top_score = 0;
-        while !(tmp_idx < tree_map.length) {
-            tmp_idx -= tree_map.length;
-            top_score += 1;
-            if tree_map.trees.get(tmp_idx).unwrap() >= &tree_height {
-                break;
+        for (cur_idx, tree_height) in self.trees.iter().enumerate() {
+            tmp_idx = cur_idx;
+            let mut top_score = 0;
+            while !(tmp_idx < self.length) {
+                tmp_idx -= self.length;
+                top_score += 1;
+                if self.trees.get(tmp_idx).unwrap() >= &tree_height {
+                    break;
+                }
+            }
+            if top_score == 0 {
+                continue
+            }
+
+            tmp_idx = cur_idx;
+            let mut bottom_score = 0;
+            while tmp_idx < self.length * (self.length - 1) {
+                tmp_idx += self.length;
+                bottom_score += 1;
+                if self.trees.get(tmp_idx).unwrap() >= &tree_height {
+                    break;
+                }
+            }
+            if bottom_score == 0 {
+                continue
+            }
+
+            tmp_idx = cur_idx;
+            let mut right_score = 0;
+            while (tmp_idx < self.length * self.length - 1) && (tmp_idx / self.length == cur_idx / self.length) {
+                tmp_idx += 1;
+                right_score += 1;
+                if self.trees.get(tmp_idx).unwrap() >= &tree_height {
+                    break;
+                }
+            }
+            if right_score == 0 {
+                continue
+            }
+
+            tmp_idx = cur_idx;
+            let mut left_score = 0;
+            while tmp_idx > 0 && ((tmp_idx - 1) / self.length == cur_idx / self.length) {
+                tmp_idx -= 1;
+                left_score += 1;
+                if self.trees.get(tmp_idx).unwrap() >= &tree_height {
+                    break;
+                }
+            }
+            if left_score == 0 {
+                continue
+            }
+
+            let score = top_score * right_score * bottom_score * left_score;
+            if score > highest_scenic_seen {
+                highest_scenic_seen = score;
             }
         }
-        if top_score == 0 {
-            continue
-        }
-
-        tmp_idx = cur_idx;
-        let mut bottom_score = 0;
-        while tmp_idx < tree_map.length * (tree_map.length - 1) {
-            tmp_idx += tree_map.length;
-            bottom_score += 1;
-            if tree_map.trees.get(tmp_idx).unwrap() >= &tree_height {
-                break;
-            }
-        }
-        if bottom_score == 0 {
-            continue
-        }
-
-        tmp_idx = cur_idx;
-        let mut right_score = 0;
-        while (tmp_idx < tree_map.length * tree_map.length - 1) && (tmp_idx / tree_map.length == cur_idx / tree_map.length) {
-            tmp_idx += 1;
-            right_score += 1;
-            if tree_map.trees.get(tmp_idx).unwrap() >= &tree_height {
-                break;
-            }
-        }
-        if right_score == 0 {
-            continue
-        }
-
-        tmp_idx = cur_idx;
-        let mut left_score = 0;
-        while tmp_idx > 0 && ((tmp_idx - 1) / tree_map.length == cur_idx / tree_map.length) {
-            tmp_idx -= 1;
-            left_score += 1;
-            if tree_map.trees.get(tmp_idx).unwrap() >= &tree_height {
-                break;
-            }
-        }
-        if left_score == 0 {
-            continue
-        }
-
-        let score = top_score * right_score * bottom_score * left_score;
-        if score > highest_scenic_seen {
-            highest_scenic_seen = score;
-        }
+        highest_scenic_seen
     }
-    highest_scenic_seen
-}
 
-fn get_number_of_visible_trees(tree_map: &TreeMap) -> usize {
-    (0..(tree_map.length * tree_map.length))
-        .map(|idx| if tree_map.is_tree_visible(idx) { 1 } else { 0 })
-        .sum()
+    fn get_number_of_visible_trees(&self) -> usize {
+        (0..(self.length * self.length))
+            .map(|idx| self.is_tree_visible(idx))
+            .filter(|b| *b)
+            .count()
+    }
 }
 
 pub fn run() {
@@ -131,7 +131,7 @@ pub fn run() {
     };
 
     println!("Day 8: ");
-    println!("Part 1: {}", get_number_of_visible_trees(&tree_map));
-    println!("Part 2: {}", get_highest_scenic_score(&tree_map));
+    println!("Part 1: {}", tree_map.get_number_of_visible_trees());
+    println!("Part 2: {}", tree_map.get_highest_scenic_score());
     println!("----------");
 }
