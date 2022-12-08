@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::usize;
 
 #[derive(Debug)]
 struct TreeMap {
@@ -8,14 +9,6 @@ struct TreeMap {
 }
 
 impl TreeMap {
-    pub fn get_neighbors_heights(&self, tree_idx: usize) -> [Option<&u8>; 4] {
-        let top = if tree_idx >= self.length { self.trees.get(tree_idx - self.length) } else { None };
-        let bottom = if tree_idx + self.length < self.length * self.length { self.trees.get(tree_idx + self.length) } else { None };
-        let left = if ((tree_idx - 1) % self.length) == 0 { None } else { self.trees.get(tree_idx - 1) };
-        let right = if ((tree_idx + 1) % self.length) == 0 { None } else { self.trees.get(tree_idx + 1) };
-        [top, right, bottom, left]
-    }
-
     pub fn is_on_edge(&self, tree_idx: usize) -> bool {
         if tree_idx < self.length {
             return true;
@@ -34,37 +27,38 @@ impl TreeMap {
             return true
         }
 
-        let tree_height = self.trees.get(tree_idx).unwrap();
+        let our_tree_height = self.trees.get(tree_idx).unwrap();
 
-        for neighbor in self.get_neighbors_heights(tree_idx) {
-            match neighbor {
-                None => return true,
-                Some(neighbor_height) => {
-                    if neighbor_height < tree_height {
-                        return true;
-                    }
-                }
+        let trees_top: Vec<usize> = (0..self.trees.len() - 1)
+            .filter_map(|idx| if (tree_idx % self.length == idx % self.length) && (idx < tree_idx) { Some(idx) } else { None })
+            .collect();
+        let trees_bottom: Vec<usize> = (0..self.trees.len() - 1)
+            .filter_map(|idx| if (tree_idx % self.length == idx % self.length) && (idx > tree_idx) { Some(idx) } else { None })
+            .collect();
+        let trees_left: Vec<usize> = (0..self.trees.len() - 1)
+            .filter_map(|idx| if (tree_idx / self.length == idx / self.length) && (idx < tree_idx) { Some(idx) } else { None })
+            .collect();
+        let trees_right: Vec<usize> = (0..self.trees.len() - 1)
+            .filter_map(|idx| if (tree_idx / self.length == idx / self.length) && (idx > tree_idx) { Some(idx) } else { None })
+            .collect();
+
+        for dir in [trees_top, trees_bottom, trees_right, trees_left] {
+            if !dir.iter().any(|idx| self.trees.get(*idx).unwrap() >= our_tree_height) {
+                return true
             }
         }
-        dbg!(tree_idx);
         false
     }
 }
 
 fn get_number_of_visible_trees(tree_map: &TreeMap) -> usize {
-    let mut nbr_visible_trees = 0;
-
-    for idx in 0..(tree_map.length * tree_map.length) {
-        if tree_map.is_tree_visible(idx) {
-            // dbg!(idx);
-            nbr_visible_trees += 1;
-        }
-    }
-    nbr_visible_trees
+    (0..(tree_map.length * tree_map.length))
+        .map(|idx| if tree_map.is_tree_visible(idx) { 1 } else { 0 })
+        .sum()
 }
 
 pub fn run() {
-    let file = File::open("inputs/testday8").unwrap();
+    let file = File::open("inputs/day8").unwrap();
     let lines = BufReader::new(file).lines().map(|x| x.unwrap()).collect::<Vec<String>>();
     let tree_map = TreeMap {
         length: lines.iter().next().unwrap().len(),
