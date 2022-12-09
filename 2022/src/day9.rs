@@ -57,36 +57,67 @@ impl Rope {
     pub fn update_knot(&mut self, knot_idx: usize, dir: &Direction) {
         let mut body_iter = self.body.iter_mut();
         let prev_knot = match knot_idx {
-            1 => {&self.head},
+            0 => {&self.head},
             _ => {body_iter.nth(knot_idx - 1).unwrap()}
         };
         let knot = body_iter.next().unwrap();
 
-        match dir {
-            R => {
-                if knot.x < prev_knot.x - 1 {
-                    knot.x = prev_knot.x - 1;
-                    knot.y = prev_knot.y;
-                }
-            },
-            L => {
-                if knot.x > prev_knot.x + 1 {
-                    knot.x = prev_knot.x + 1;
-                    knot.y = prev_knot.y;
-                }
-            },
-            D => {
-                if knot.y > prev_knot.y + 1 {
-                    knot.x = prev_knot.x;
-                    knot.y = prev_knot.y + 1;
-                }
-            },
-            U => {
-                if knot.y < prev_knot.y - 1 {
-                    knot.x = prev_knot.x;
-                    knot.y = prev_knot.y - 1;
-                }
-            },
+
+        if knot.x == prev_knot.x && knot.y == prev_knot.y - 2 {
+            knot.y = prev_knot.y - 1
+        }
+        if knot.x == prev_knot.x && knot.y == prev_knot.y + 2 {
+            knot.y = prev_knot.y + 1
+        }
+        if knot.y == prev_knot.y && knot.x == prev_knot.x - 2 {
+            knot.x = prev_knot.x - 1
+        }
+        if knot.y == prev_knot.y && knot.x == prev_knot.x + 2 {
+            knot.x = prev_knot.x + 1
+        }
+
+        // top right
+        if knot.x == prev_knot.x + 1 && knot.y == prev_knot.y + 2 {
+            knot.x += 1;
+            knot.y += 1;
+        }
+
+        if knot.x == prev_knot.x + 2 && knot.y == prev_knot.y + 1 {
+            knot.x += 1;
+            knot.y += 1;
+        }
+
+        //  bottom left
+        if knot.x == prev_knot.x - 1 && knot.y == prev_knot.y - 2 {
+            knot.x -= 1;
+            knot.y -= 1;
+        }
+
+        if knot.x == prev_knot.x - 2 && knot.y == prev_knot.y - 1 {
+            knot.x -= 1;
+            knot.y -= 1;
+        }
+
+        // bottom right
+        if knot.x == prev_knot.x + 2 && knot.y == prev_knot.y - 1 {
+            knot.x += 1;
+            knot.y -= 1;
+        }
+
+        if knot.x == prev_knot.x + 1 && knot.y == prev_knot.y - 2 {
+            knot.x += 1;
+            knot.y -= 1;
+        }
+
+        // top left
+        if knot.x == prev_knot.x - 2 && knot.y == prev_knot.y + 1 {
+            knot.x -= 1;
+            knot.y += 1;
+        }
+
+        if knot.x == prev_knot.x - 1 && knot.y == prev_knot.y + 2 {
+            knot.x -= 1;
+            knot.y += 1;
         }
     }
 
@@ -98,7 +129,7 @@ impl Rope {
             U => { self.head.y += 1 }
         }
 
-        for i in 1..self.length {
+        for i in 0..(self.length - 1) {
             self.update_knot(i, &mot.dir);
         }
     }
@@ -110,24 +141,32 @@ fn get_nbr_locations_tail_visited(mut rope: Rope, motions: &Vec<Motion>) -> usiz
     for mot in motions {
         for _ in 0..mot.steps_nbr {
             rope.move_rope(mot);
-            // println!("head: {} {}", rope.head.x, rope.head.y);
-            // println!("tail: {} {}", rope.tail.x, rope.tail.y);
-            // println!("---");
             locations_tail_visited.insert(rope.body.last().unwrap().clone());
         }
     }
+
+    // for y in -26..26 {
+    //     for x in -26..26 {
+    //         if locations_tail_visited.contains(&Pos { x, y }) {
+    //             print!("x")
+    //         } else {
+    //             print!(".");
+    //         }
+    //     }
+    //     print!("\n");
+    // }
 
     locations_tail_visited.len()
 }
 
 pub fn run() {
-    let file = File::open("inputs/day9").unwrap();
+    let file = File::open("inputs/testday9").unwrap();
     let motions = BufReader::new(file).lines()
         .map(|res_str| Motion::from_str(res_str.unwrap()))
         .collect::<Vec<Motion>>();
 
     println!("Day 9: ");
     println!("Part 1: {}", get_nbr_locations_tail_visited(Rope::new(2), &motions));
-    // println!("Part 2: {}", get_nbr_locations_tail_visited(Rope::new(10), &motions));
+    println!("Part 2: {}", get_nbr_locations_tail_visited(Rope::new(10), &motions));
     println!("----------");
 }
