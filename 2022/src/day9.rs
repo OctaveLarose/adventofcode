@@ -57,36 +57,26 @@ impl Rope {
     pub fn update_knot(&mut self, knot_idx: usize, dir: &Direction) {
         let mut body_iter = self.body.iter_mut();
         let prev_knot = match knot_idx {
-            1 => {&self.head},
+            0 => {&self.head},
             _ => {body_iter.nth(knot_idx - 1).unwrap()}
         };
         let knot = body_iter.next().unwrap();
 
-        match dir {
-            R => {
-                if knot.x < prev_knot.x - 1 {
-                    knot.x = prev_knot.x - 1;
-                    knot.y = prev_knot.y;
-                }
-            },
-            L => {
-                if knot.x > prev_knot.x + 1 {
-                    knot.x = prev_knot.x + 1;
-                    knot.y = prev_knot.y;
-                }
-            },
-            D => {
-                if knot.y > prev_knot.y + 1 {
-                    knot.x = prev_knot.x;
-                    knot.y = prev_knot.y + 1;
-                }
-            },
-            U => {
-                if knot.y < prev_knot.y - 1 {
-                    knot.x = prev_knot.x;
-                    knot.y = prev_knot.y - 1;
-                }
-            },
+        if knot.x < prev_knot.x - 1 {
+            knot.x = prev_knot.x - 1;
+            knot.y = prev_knot.y;
+        }
+        if knot.x > prev_knot.x + 1 {
+            knot.x = prev_knot.x + 1;
+            knot.y = prev_knot.y;
+        }
+        if knot.y > prev_knot.y + 1 {
+            knot.x = prev_knot.x;
+            knot.y = prev_knot.y + 1;
+        }
+        if knot.y < prev_knot.y - 1 {
+            knot.x = prev_knot.x;
+            knot.y = prev_knot.y - 1;
         }
     }
 
@@ -98,7 +88,7 @@ impl Rope {
             U => { self.head.y += 1 }
         }
 
-        for i in 1..self.length {
+        for i in 0..(self.length - 1) {
             self.update_knot(i, &mot.dir);
         }
     }
@@ -128,6 +118,6 @@ pub fn run() {
 
     println!("Day 9: ");
     println!("Part 1: {}", get_nbr_locations_tail_visited(Rope::new(2), &motions));
-    // println!("Part 2: {}", get_nbr_locations_tail_visited(Rope::new(10), &motions));
+    println!("Part 2: {}", get_nbr_locations_tail_visited(Rope::new(10), &motions));
     println!("----------");
 }
