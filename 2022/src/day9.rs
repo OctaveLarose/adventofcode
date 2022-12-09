@@ -40,51 +40,61 @@ struct Pos {
 #[derive(Debug)]
 struct Rope {
     head: Pos,
-    tail: Pos,
-    length: usize // number of non head/tail elements
+    body: Vec<Pos>
 }
 
 impl Rope {
-    pub fn new(length: usize) -> Rope {
+    pub fn new(body_size: usize) -> Rope {
         let start_pos = Pos {x: 0, y: 0}; // arbitrary
-        Rope { head: start_pos.clone(), tail: start_pos.clone(), length }
+        Rope {
+            head: start_pos.clone(),
+            body: vec![start_pos.clone(); body_size - 1]
+        }
     }
 
     pub fn move_rope(&mut self, mot: &Motion) {
         match mot.dir {
-            R => {
-                self.head.x += 1;
-                if self.tail.x < self.head.x - 1 {
-                    self.tail.x = self.head.x - 1;
-                    self.tail.y = self.head.y;
-                }
-            },
-            L => {
-                self.head.x -= 1;
-                if self.tail.x > self.head.x + 1 {
-                    self.tail.x = self.head.x + 1;
-                    self.tail.y = self.head.y;
-                }
-            },
-            D => {
-                self.head.y -= 1;
-                if self.tail.y > self.head.y + 1 {
-                    self.tail.x = self.head.x;
-                    self.tail.y = self.head.y + 1;
-                }
-            },
-            U => {
-                self.head.y += 1;
-                if self.tail.y < self.head.y - 1 {
-                    self.tail.x = self.head.x;
-                    self.tail.y = self.head.y - 1;
-                }
-            },
+            R => { self.head.x += 1 },
+            L => { self.head.x -= 1 },
+            D => { self.head.y -= 1 },
+            U => { self.head.y += 1 }
+        }
+
+        let mut prev_knot = &self.head;
+
+        for knot in self.body.iter_mut() {
+            match mot.dir {
+                R => {
+                    if knot.x < prev_knot.x - 1 {
+                        knot.x = prev_knot.x - 1;
+                        knot.y = prev_knot.y;
+                    }
+                },
+                L => {
+                    if knot.x > prev_knot.x + 1 {
+                        knot.x = prev_knot.x + 1;
+                        knot.y = prev_knot.y;
+                    }
+                },
+                D => {
+                    if knot.y > prev_knot.y + 1 {
+                        knot.x = prev_knot.x;
+                        knot.y = prev_knot.y + 1;
+                    }
+                },
+                U => {
+                    if knot.y < prev_knot.y - 1 {
+                        knot.x = prev_knot.x;
+                        knot.y = prev_knot.y - 1;
+                    }
+                },
+            }
+            prev_knot = &knot;
         }
     }
 }
 
-fn part1(mut rope: Rope, motions: &Vec<Motion>) -> usize {
+fn get_nbr_locations_tail_visited(mut rope: Rope, motions: &Vec<Motion>) -> usize {
     let mut locations_tail_visited: HashSet<Pos> = HashSet::new();
 
     for mot in motions {
@@ -94,7 +104,7 @@ fn part1(mut rope: Rope, motions: &Vec<Motion>) -> usize {
             // println!("head: {} {}", rope.head.x, rope.head.y);
             // println!("tail: {} {}", rope.tail.x, rope.tail.y);
             // println!("---");
-            locations_tail_visited.insert(rope.tail.clone());
+            locations_tail_visited.insert(rope.body.last().unwrap().clone());
         }
     }
 
@@ -108,7 +118,7 @@ pub fn run() {
         .collect::<Vec<Motion>>();
 
     println!("Day 9: ");
-    println!("Part 1: {}", part1(Rope::new(0), &motions));
-    // println!("Part 2: {}", tree_map.get_highest_scenic_score());
+    println!("Part 1: {}", get_nbr_locations_tail_visited(Rope::new(1), &motions));
+    // println!("Part 2: {}", get_nbr_locations_tail_visited(Rope::new(9), &motions));
     println!("----------");
 }
