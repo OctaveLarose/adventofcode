@@ -40,56 +40,66 @@ struct Pos {
 #[derive(Debug)]
 struct Rope {
     head: Pos,
-    body: Vec<Pos>
+    body: Vec<Pos>,
+    length: usize
 }
 
 impl Rope {
-    pub fn new(body_size: usize) -> Rope {
+    pub fn new(length: usize) -> Rope {
         let start_pos = Pos {x: 0, y: 0}; // arbitrary
         Rope {
             head: start_pos.clone(),
-            body: vec![start_pos.clone(); body_size - 1]
+            body: vec![start_pos.clone(); length - 1],
+            length
+        }
+    }
+
+    pub fn update_knot(&mut self, knot_idx: usize, dir: &Direction) {
+        let mut body_iter = self.body.iter_mut();
+        let prev_knot = match knot_idx {
+            1 => {&self.head},
+            _ => {body_iter.nth(knot_idx - 1).unwrap()}
+        };
+        let knot = body_iter.next().unwrap();
+
+        match dir {
+            R => {
+                if knot.x < prev_knot.x - 1 {
+                    knot.x = prev_knot.x - 1;
+                    knot.y = prev_knot.y;
+                }
+            },
+            L => {
+                if knot.x > prev_knot.x + 1 {
+                    knot.x = prev_knot.x + 1;
+                    knot.y = prev_knot.y;
+                }
+            },
+            D => {
+                if knot.y > prev_knot.y + 1 {
+                    knot.x = prev_knot.x;
+                    knot.y = prev_knot.y + 1;
+                }
+            },
+            U => {
+                if knot.y < prev_knot.y - 1 {
+                    knot.x = prev_knot.x;
+                    knot.y = prev_knot.y - 1;
+                }
+            },
         }
     }
 
     pub fn move_rope(&mut self, mot: &Motion) {
-        match mot.dir {
+        match &mot.dir {
             R => { self.head.x += 1 },
             L => { self.head.x -= 1 },
             D => { self.head.y -= 1 },
             U => { self.head.y += 1 }
         }
 
-        let mut prev_knot = &self.head;
-
-        for knot in self.body.iter_mut() {
-            match mot.dir {
-                R => {
-                    if knot.x < prev_knot.x - 1 {
-                        knot.x = prev_knot.x - 1;
-                        knot.y = prev_knot.y;
-                    }
-                },
-                L => {
-                    if knot.x > prev_knot.x + 1 {
-                        knot.x = prev_knot.x + 1;
-                        knot.y = prev_knot.y;
-                    }
-                },
-                D => {
-                    if knot.y > prev_knot.y + 1 {
-                        knot.x = prev_knot.x;
-                        knot.y = prev_knot.y + 1;
-                    }
-                },
-                U => {
-                    if knot.y < prev_knot.y - 1 {
-                        knot.x = prev_knot.x;
-                        knot.y = prev_knot.y - 1;
-                    }
-                },
-            }
-            prev_knot = &knot;
+        for i in 1..self.length {
+            self.update_knot(i, &mot.dir);
         }
     }
 }
@@ -98,7 +108,6 @@ fn get_nbr_locations_tail_visited(mut rope: Rope, motions: &Vec<Motion>) -> usiz
     let mut locations_tail_visited: HashSet<Pos> = HashSet::new();
 
     for mot in motions {
-        // dbg!(&mot);
         for _ in 0..mot.steps_nbr {
             rope.move_rope(mot);
             // println!("head: {} {}", rope.head.x, rope.head.y);
@@ -118,7 +127,7 @@ pub fn run() {
         .collect::<Vec<Motion>>();
 
     println!("Day 9: ");
-    println!("Part 1: {}", get_nbr_locations_tail_visited(Rope::new(1), &motions));
-    // println!("Part 2: {}", get_nbr_locations_tail_visited(Rope::new(9), &motions));
+    println!("Part 1: {}", get_nbr_locations_tail_visited(Rope::new(2), &motions));
+    // println!("Part 2: {}", get_nbr_locations_tail_visited(Rope::new(10), &motions));
     println!("----------");
 }
