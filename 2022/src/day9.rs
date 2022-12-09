@@ -78,46 +78,46 @@ impl Rope {
 
         // top right
         if knot.x == prev_knot.x + 1 && knot.y == prev_knot.y + 2 {
-            knot.x += 1;
-            knot.y += 1;
+            knot.x -= 1;
+            knot.y -= 1;
         }
 
         if knot.x == prev_knot.x + 2 && knot.y == prev_knot.y + 1 {
-            knot.x += 1;
-            knot.y += 1;
+            knot.x -= 1;
+            knot.y -= 1;
         }
 
         //  bottom left
         if knot.x == prev_knot.x - 1 && knot.y == prev_knot.y - 2 {
-            knot.x -= 1;
-            knot.y -= 1;
+            knot.x += 1;
+            knot.y += 1;
         }
 
         if knot.x == prev_knot.x - 2 && knot.y == prev_knot.y - 1 {
-            knot.x -= 1;
-            knot.y -= 1;
+            knot.x += 1;
+            knot.y += 1;
         }
 
         // bottom right
         if knot.x == prev_knot.x + 2 && knot.y == prev_knot.y - 1 {
-            knot.x += 1;
-            knot.y -= 1;
+            knot.x -= 1;
+            knot.y += 1;
         }
 
         if knot.x == prev_knot.x + 1 && knot.y == prev_knot.y - 2 {
-            knot.x += 1;
-            knot.y -= 1;
+            knot.x -= 1;
+            knot.y += 1;
         }
 
         // top left
         if knot.x == prev_knot.x - 2 && knot.y == prev_knot.y + 1 {
-            knot.x -= 1;
-            knot.y += 1;
+            knot.x += 1;
+            knot.y -= 1;
         }
 
         if knot.x == prev_knot.x - 1 && knot.y == prev_knot.y + 2 {
-            knot.x -= 1;
-            knot.y += 1;
+            knot.x += 1;
+            knot.y -= 1;
         }
     }
 
@@ -160,7 +160,7 @@ fn get_nbr_locations_tail_visited(mut rope: Rope, motions: &Vec<Motion>) -> usiz
 }
 
 pub fn run() {
-    let file = File::open("inputs/testday9").unwrap();
+    let file = File::open("inputs/day9").unwrap();
     let motions = BufReader::new(file).lines()
         .map(|res_str| Motion::from_str(res_str.unwrap()))
         .collect::<Vec<Motion>>();
