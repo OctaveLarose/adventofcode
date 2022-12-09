@@ -54,7 +54,7 @@ impl Rope {
         }
     }
 
-    pub fn update_knot(&mut self, knot_idx: usize, dir: &Direction) {
+    pub fn update_knot(&mut self, knot_idx: usize) {
         let mut body_iter = self.body.iter_mut();
         let prev_knot = match knot_idx {
             0 => {&self.head},
@@ -77,45 +77,65 @@ impl Rope {
         }
 
         // top right
-        if knot.x == prev_knot.x + 1 && knot.y == prev_knot.y + 2 {
-            knot.x -= 1;
-            knot.y -= 1;
-        }
-
-        if knot.x == prev_knot.x + 2 && knot.y == prev_knot.y + 1 {
-            knot.x -= 1;
-            knot.y -= 1;
-        }
-
-        //  bottom left
-        if knot.x == prev_knot.x - 1 && knot.y == prev_knot.y - 2 {
+        if knot.x + 1 == prev_knot.x && knot.y + 2 == prev_knot.y {
             knot.x += 1;
             knot.y += 1;
         }
 
-        if knot.x == prev_knot.x - 2 && knot.y == prev_knot.y - 1 {
+        if knot.x + 2 == prev_knot.x && knot.y + 1 == prev_knot.y {
             knot.x += 1;
+            knot.y += 1;
+        }
+
+        if knot.x + 2 == prev_knot.x && knot.y + 2 == prev_knot.y {
+            knot.x += 1;
+            knot.y += 1;
+        }
+
+        // bottom left
+        if knot.x - 1 == prev_knot.x && knot.y - 2 == prev_knot.y {
+            knot.x -= 1;
+            knot.y -= 1;
+        }
+
+        if knot.x - 2 == prev_knot.x && knot.y - 1 == prev_knot.y {
+            knot.x -= 1;
+            knot.y -= 1;
+        }
+
+        if knot.x - 2 == prev_knot.x && knot.y - 2 == prev_knot.y {
+            knot.x -= 1;
+            knot.y -= 1;
+        }
+
+        // top left
+        if knot.x - 2 == prev_knot.x && knot.y + 1 == prev_knot.y {
+            knot.x -= 1;
+            knot.y += 1;
+        }
+
+        if knot.x - 1 == prev_knot.x && knot.y + 2 == prev_knot.y {
+            knot.x -= 1;
+            knot.y += 1;
+        }
+
+        if knot.x - 2 == prev_knot.x && knot.y + 2 == prev_knot.y {
+            knot.x -= 1;
             knot.y += 1;
         }
 
         // bottom right
-        if knot.x == prev_knot.x + 2 && knot.y == prev_knot.y - 1 {
-            knot.x -= 1;
-            knot.y += 1;
-        }
-
-        if knot.x == prev_knot.x + 1 && knot.y == prev_knot.y - 2 {
-            knot.x -= 1;
-            knot.y += 1;
-        }
-
-        // top left
-        if knot.x == prev_knot.x - 2 && knot.y == prev_knot.y + 1 {
+        if knot.x + 2 == prev_knot.x && knot.y - 1 == prev_knot.y {
             knot.x += 1;
             knot.y -= 1;
         }
 
-        if knot.x == prev_knot.x - 1 && knot.y == prev_knot.y + 2 {
+        if knot.x + 1 == prev_knot.x && knot.y - 2 == prev_knot.y {
+            knot.x += 1;
+            knot.y -= 1;
+        }
+
+        if knot.x + 2 == prev_knot.x && knot.y - 2 == prev_knot.y {
             knot.x += 1;
             knot.y -= 1;
         }
@@ -130,7 +150,7 @@ impl Rope {
         }
 
         for i in 0..(self.length - 1) {
-            self.update_knot(i, &mot.dir);
+            self.update_knot(i);
         }
     }
 }
@@ -144,17 +164,6 @@ fn get_nbr_locations_tail_visited(mut rope: Rope, motions: &Vec<Motion>) -> usiz
             locations_tail_visited.insert(rope.body.last().unwrap().clone());
         }
     }
-
-    // for y in -26..26 {
-    //     for x in -26..26 {
-    //         if locations_tail_visited.contains(&Pos { x, y }) {
-    //             print!("x")
-    //         } else {
-    //             print!(".");
-    //         }
-    //     }
-    //     print!("\n");
-    // }
 
     locations_tail_visited.len()
 }
