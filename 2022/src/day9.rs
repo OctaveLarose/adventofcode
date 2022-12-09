@@ -77,65 +77,37 @@ impl Rope {
         }
 
         // top right
-        if knot.x + 1 == prev_knot.x && knot.y + 2 == prev_knot.y {
-            knot.x += 1;
-            knot.y += 1;
-        }
-
-        if knot.x + 2 == prev_knot.x && knot.y + 1 == prev_knot.y {
-            knot.x += 1;
-            knot.y += 1;
-        }
-
-        if knot.x + 2 == prev_knot.x && knot.y + 2 == prev_knot.y {
+        if (knot.x + 1 == prev_knot.x && knot.y + 2 == prev_knot.y) ||
+            (knot.x + 2 == prev_knot.x && knot.y + 1 == prev_knot.y) ||
+            (knot.x + 2 == prev_knot.x && knot.y + 2 == prev_knot.y)
+        {
             knot.x += 1;
             knot.y += 1;
         }
 
         // bottom left
-        if knot.x - 1 == prev_knot.x && knot.y - 2 == prev_knot.y {
-            knot.x -= 1;
-            knot.y -= 1;
-        }
-
-        if knot.x - 2 == prev_knot.x && knot.y - 1 == prev_knot.y {
-            knot.x -= 1;
-            knot.y -= 1;
-        }
-
-        if knot.x - 2 == prev_knot.x && knot.y - 2 == prev_knot.y {
+        if (knot.x - 1 == prev_knot.x && knot.y - 2 == prev_knot.y) ||
+            (knot.x - 2 == prev_knot.x && knot.y - 1 == prev_knot.y) ||
+            (knot.x - 2 == prev_knot.x && knot.y - 2 == prev_knot.y)
+        {
             knot.x -= 1;
             knot.y -= 1;
         }
 
         // top left
-        if knot.x - 2 == prev_knot.x && knot.y + 1 == prev_knot.y {
-            knot.x -= 1;
-            knot.y += 1;
-        }
-
-        if knot.x - 1 == prev_knot.x && knot.y + 2 == prev_knot.y {
-            knot.x -= 1;
-            knot.y += 1;
-        }
-
-        if knot.x - 2 == prev_knot.x && knot.y + 2 == prev_knot.y {
+        if (knot.x - 2 == prev_knot.x && knot.y + 1 == prev_knot.y) ||
+            (knot.x - 1 == prev_knot.x && knot.y + 2 == prev_knot.y) ||
+            (knot.x - 2 == prev_knot.x && knot.y + 2 == prev_knot.y)
+        {
             knot.x -= 1;
             knot.y += 1;
         }
 
         // bottom right
-        if knot.x + 2 == prev_knot.x && knot.y - 1 == prev_knot.y {
-            knot.x += 1;
-            knot.y -= 1;
-        }
-
-        if knot.x + 1 == prev_knot.x && knot.y - 2 == prev_knot.y {
-            knot.x += 1;
-            knot.y -= 1;
-        }
-
-        if knot.x + 2 == prev_knot.x && knot.y - 2 == prev_knot.y {
+        if (knot.x + 2 == prev_knot.x && knot.y - 1 == prev_knot.y) ||
+            (knot.x + 1 == prev_knot.x && knot.y - 2 == prev_knot.y) ||
+            (knot.x + 2 == prev_knot.x && knot.y - 2 == prev_knot.y)
+        {
             knot.x += 1;
             knot.y -= 1;
         }
