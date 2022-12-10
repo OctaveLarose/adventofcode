@@ -47,32 +47,29 @@ impl SignalHandler {
         }
     }
 
-    fn is_interesting_signal(&self) -> bool {
-        (self.current_cycle + 20) % 40 == 0
+    fn is_interesting_signal(current_cycle: usize) -> bool {
+        (current_cycle + 20) % 40 == 0
     }
 
     pub fn execute(&mut self) -> isize {
-        for current_instr in &self.all_instrs {
+        let mut instrs_iter = self.all_instrs.iter_mut().peekable();
+
+        while instrs_iter.peek().is_some() {
+            self.current_cycle += 1;
+
+            if SignalHandler::is_interesting_signal(self.current_cycle) {
+                self.interesting_signal_strength_total += (self.current_cycle as isize) * self.register;
+            }
+
+            let mut current_instr = instrs_iter.peek_mut().unwrap();
             match current_instr.instr_type {
-                NOOP => {
-                    self.current_cycle += 1;
-                    if self.is_interesting_signal() {
-                        dbg!(self.register, self.current_cycle);
-                        self.interesting_signal_strength_total += (self.current_cycle as isize) * self.register;
-                    }
-                },
+                NOOP => { instrs_iter.next(); },
                 ADDX => {
-                    self.current_cycle += 1;
-                    if self.is_interesting_signal() {
-                        dbg!(self.register, self.current_cycle);
-                        self.interesting_signal_strength_total += (self.current_cycle as isize) * self.register;
+                    current_instr.cycles_left -= 1;
+                    if current_instr.cycles_left == 0 {
+                        self.register += current_instr.value;
+                        instrs_iter.next();
                     }
-                    self.current_cycle += 1;
-                    if self.is_interesting_signal() {
-                        dbg!(self.register, self.current_cycle);
-                        self.interesting_signal_strength_total += (self.current_cycle as isize) * self.register;
-                    }
-                    self.register += current_instr.value;
                 }
             }
         }
