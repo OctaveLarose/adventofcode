@@ -30,25 +30,47 @@ impl Instr {
     }
 }
 
-struct SignalHandler {
+struct CRT {
     register: isize,
     all_instrs: Vec<Instr>,
     current_cycle: usize,
-    interesting_signal_strength_total: isize
+    interesting_signal_strength_total: isize,
+    should_draw: bool
 }
 
-impl SignalHandler {
-    pub fn new(instructions: Vec<Instr>) -> SignalHandler {
-        SignalHandler {
+impl CRT {
+    pub fn new(instructions: Vec<Instr>) -> CRT {
+        CRT {
             register: 1,
             all_instrs: instructions,
             current_cycle: 0,
-            interesting_signal_strength_total: 0
+            interesting_signal_strength_total: 0,
+            should_draw: false
         }
+    }
+
+    pub fn should_draw(&mut self) -> &mut CRT {
+        self.should_draw = true;
+        self
     }
 
     fn is_interesting_signal(current_cycle: usize) -> bool {
         (current_cycle + 20) % 40 == 0
+    }
+
+    fn draw(current_cycle: usize, register: isize) {
+        let pixel_idx = (current_cycle % 40) as isize - 1;
+
+        match register {
+            _ if pixel_idx == register => print!("#"),
+            _ if pixel_idx + 1 == register => print!("#"),
+            _ if pixel_idx - 1 == register => print!("#"),
+            _ => print!(".")
+        }
+
+        if current_cycle % 40 == 0 {
+            print!("\n");
+        }
     }
 
     pub fn execute(&mut self) -> isize {
@@ -57,7 +79,11 @@ impl SignalHandler {
         while instrs_iter.peek().is_some() {
             self.current_cycle += 1;
 
-            if SignalHandler::is_interesting_signal(self.current_cycle) {
+            if self.should_draw {
+                CRT::draw(self.current_cycle, self.register);
+            }
+
+            if CRT::is_interesting_signal(self.current_cycle) {
                 self.interesting_signal_strength_total += (self.current_cycle as isize) * self.register;
             }
 
@@ -85,6 +111,8 @@ pub fn run() {
         .collect::<Vec<Instr>>();
 
     println!("Day 9: ");
-    println!("Part 1: {}", SignalHandler::new(instructions).execute());
+    println!("Part 1: {}", CRT::new(instructions.clone()).execute());
+    println!("Part 2: ");
+    CRT::new(instructions.clone()).should_draw().execute();
     println!("----------");
 }
