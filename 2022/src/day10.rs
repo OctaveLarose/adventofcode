@@ -61,11 +61,10 @@ impl CRT {
     fn draw(current_cycle: usize, register: isize) {
         let pixel_idx = (current_cycle % 40) as isize - 1;
 
-        match register {
-            _ if pixel_idx == register => print!("#"),
-            _ if pixel_idx + 1 == register => print!("#"),
-            _ if pixel_idx - 1 == register => print!("#"),
-            _ => print!(".")
+        if (pixel_idx - 1) <= register && register <= (pixel_idx + 1) {
+            print!("#")
+        } else {
+            print!(".");
         }
 
         if current_cycle % 40 == 0 {
@@ -110,7 +109,7 @@ pub fn run() {
         .map(|res_str| Instr::from_str(res_str.unwrap()))
         .collect::<Vec<Instr>>();
 
-    println!("Day 9: ");
+    println!("Day 10: ");
     println!("Part 1: {}", CRT::new(instructions.clone()).execute());
     println!("Part 2: ");
     CRT::new(instructions.clone()).should_draw().execute();
