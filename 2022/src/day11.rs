@@ -1,5 +1,4 @@
 use std::fs;
-use std::process::exit;
 
 #[derive(Debug)]
 enum Operation {
@@ -31,7 +30,7 @@ impl Monkey {
 
         let operations_str = &line_iter.next().unwrap()[23..];
         let operation = match operations_str.chars().nth(0).unwrap() {
-            '+' => {Operation::Plus( operations_str[2..].parse::<usize>().unwrap()) },
+            '+' => { Operation::Plus( operations_str[2..].parse::<usize>().unwrap()) },
             '*' => {
                 match &operations_str[2..] {
                     "old" => Operation::TimesItself,
@@ -54,44 +53,59 @@ impl Monkey {
             monkey_idx_if_false: if_false_monkey_idx,
             nbr_inspections: 0
         }
-        }
+    }
 }
 
 fn do_n_rounds(mut monkeys: Vec<Monkey>, n: usize) -> usize {
-    for round_idx in 1..n + 1 {
-        for mut monkey in monkeys.iter_mut() {
+    for _ in 1..n + 1 {
+        for idx in 0..monkeys.len() {
+            let monkey = &mut monkeys[idx];
+
+            let mut new_item_vals = vec![];
             for item in &monkey.items {
                 let mut new_item_val = match monkey.operation {
                     Operation::Plus(val) => item + val,
                     Operation::Times(val) => item * val,
                     Operation::TimesItself => item * item
                 };
-                new_item_val = (new_item_val as f64 / 3.0).round() as usize;
+                new_item_val = (new_item_val as f64 / 3.0).floor() as usize;
 
-                match new_item_val % monkey.test_divisible_by == 0 {
-                    true => monkeys.get_mut(monkey.monkey_idx_if_true as usize).unwrap().items.push(new_item_val),
-                    false => monkeys.get_mut(monkey.monkey_idx_if_false as usize).unwrap().items.push(new_item_val),
-                }
-            };
+                let target_monkey_idx = match new_item_val % monkey.test_divisible_by == 0 {
+                    true => monkey.monkey_idx_if_true,
+                    false => monkey.monkey_idx_if_false,
+                };
+                new_item_vals.push((new_item_val, target_monkey_idx as usize));
+                monkey.nbr_inspections += 1;
+            }
+
             monkey.items.clear();
+
+            for (new_item_val, target_monkey_idx) in new_item_vals {
+                monkeys[target_monkey_idx].items.push(new_item_val)
+            }
         }
 
-        println!("After round {}, the monkeys are holding items with these worry levels:", round_idx);
-        for monkey in &monkeys {
-            println!("Monkey {}: {}", monkey.idx, monkey.items.iter().map(|item_nbr| item_nbr.to_string()).collect::<Vec<String>>().join(", "));
-        }
-        println!();
+        // println!("After round {}, the monkeys are holding items with these worry levels:", round_idx);
+        // for monkey in &monkeys {
+        //     println!("Monkey {}: {}", monkey.idx, monkey.items.iter().map(|item_nbr| item_nbr.to_string()).collect::<Vec<String>>().join(", "));
+        // }
+        // println!();
     }
-    42
+
+    let mut nbr_inspections = monkeys.iter()
+        .map(|m| m.nbr_inspections)
+        .collect::<Vec<usize>>();
+    nbr_inspections.sort();
+    nbr_inspections.last().unwrap() * nbr_inspections.get(monkeys.len() - 2).unwrap()
 }
 
 pub fn run() {
-    let mut monkeys = fs::read_to_string("inputs/testday11").unwrap()
+    let monkeys = fs::read_to_string("inputs/day11").unwrap()
         .split("\n\n")
         .map(|monkey_str| Monkey::from_string(monkey_str))
         .collect::<Vec<Monkey>>();
 
     println!("Day 11: ");
-    println!("Part 1: {}", do_n_rounds(monkeys, 1));
+    println!("Part 1: {}", do_n_rounds(monkeys, 20));
     println!("----------");
 }
