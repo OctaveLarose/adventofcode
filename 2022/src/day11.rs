@@ -22,35 +22,28 @@ impl Monkey {
     pub fn from_string(str: &str) -> Monkey {
         let mut line_iter = str.lines();
 
-        let monkey_idx = line_iter.next().unwrap().chars().nth(7).unwrap() as u8 - ('0' as u8);
-        let starting_items = line_iter.next().unwrap()[18..]
-            .split(", ")
-            .map(|item_str| item_str.parse::<usize>().unwrap())
-            .collect::<Vec<usize>>();
-
-        let operations_str = &line_iter.next().unwrap()[23..];
-        let operation = match operations_str.chars().nth(0).unwrap() {
-            '+' => { Operation::Plus( operations_str[2..].parse::<usize>().unwrap()) },
-            '*' => {
-                match &operations_str[2..] {
-                    "old" => Operation::TimesItself,
-                    val => Operation::Times(val.parse::<usize>().unwrap())
-                }
-            }
-            _ => panic!("Invalid operator")
-        };
-
-        let test_divisible_by = &line_iter.next().unwrap()[21..].parse::<usize>().unwrap();
-        let if_true_monkey_idx = line_iter.next().unwrap()[29..].parse::<u8>().unwrap();
-        let if_false_monkey_idx = line_iter.next().unwrap()[30..].parse::<u8>().unwrap();
-
         Monkey {
-            idx: monkey_idx,
-            items: starting_items,
-            operation,
-            test_divisible_by: *test_divisible_by,
-            monkey_idx_if_true: if_true_monkey_idx,
-            monkey_idx_if_false: if_false_monkey_idx,
+            idx: line_iter.next().unwrap().chars().nth(7).unwrap() as u8 - ('0' as u8),
+            items: line_iter.next().unwrap()[18..]
+                .split(", ")
+                .map(|item_str| item_str.parse::<usize>().unwrap())
+                .collect::<Vec<usize>>(),
+            operation: {
+                let operations_str = &line_iter.next().unwrap()[23..];
+                match operations_str.chars().nth(0).unwrap() {
+                    '+' => { Operation::Plus( operations_str[2..].parse::<usize>().unwrap()) },
+                    '*' => {
+                        match &operations_str[2..] {
+                            "old" => Operation::TimesItself,
+                            val => Operation::Times(val.parse::<usize>().unwrap())
+                        }
+                    }
+                    _ => panic!("Invalid operator")
+                }
+            },
+            test_divisible_by: line_iter.next().unwrap()[21..].parse::<usize>().unwrap(),
+            monkey_idx_if_true: line_iter.next().unwrap()[29..].parse::<u8>().unwrap(),
+            monkey_idx_if_false: line_iter.next().unwrap()[30..].parse::<u8>().unwrap(),
             nbr_inspections: 0
         }
     }
@@ -84,12 +77,6 @@ fn do_n_rounds(mut monkeys: Vec<Monkey>, n: usize) -> usize {
                 monkeys[target_monkey_idx].items.push(new_item_val)
             }
         }
-
-        // println!("After round {}, the monkeys are holding items with these worry levels:", round_idx);
-        // for monkey in &monkeys {
-        //     println!("Monkey {}: {}", monkey.idx, monkey.items.iter().map(|item_nbr| item_nbr.to_string()).collect::<Vec<String>>().join(", "));
-        // }
-        // println!();
     }
 
     let mut nbr_inspections = monkeys.iter()
