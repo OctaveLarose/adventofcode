@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::process::exit;
 use crate::day10::InstrType::{ADDX, NOOP};
 
 #[derive(Debug, Copy, Clone)]
