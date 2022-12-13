@@ -73,7 +73,7 @@ fn part2(map: &Map) -> usize {
                 |&p| map.get_heuristic(p),
                 |&p| p == map.goal_idx)
         })
-        .map(|(p1, p2) | p2)
+        .map(|(_, p2) | p2)
         .collect::<Vec<usize>>().iter()
         .min().unwrap()
 }
