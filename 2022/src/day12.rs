@@ -1,132 +1,106 @@
 use std::fs;
-use std::process::exit;
-
-// #[derive(Debug)]
-// struct Pos {
-//     x: usize,
-//     y: usize
-// }
+use pathfinding::astar;
 
 #[derive(Debug)]
 struct Map {
     length: usize,
-    height: usize,
     map: Vec<u8>,
-    player_idx: usize,
-
-    paths_found: Vec<usize>,
-    cur_nbr_steps: usize
+    start_player_idx: usize,
+    goal_idx: usize
 }
 
 impl Map {
-    // fn idx_to_pos(&self, idx: usize) -> Pos {
-    //     Pos { x: idx % self.len, y: idx % self.height }
-    // }
-    fn get_valid_destinations_for_player(&self, current_height: u8, prev_pos: usize) -> Vec<usize> {
+    fn get_valid_destinations_for_player(&self, player_idx: usize) -> Vec<(usize, usize)> {
         let mut valid_destinations = vec![];
+        let current_height = self.map[player_idx];
         let valid_height = current_height + 1;
 
-        if self.player_idx == 23 {
-            print!("bp");
-        }
-
         // left
-        if self.player_idx % self.length != 0 {
-            valid_destinations.push(self.player_idx - 1);
+        if player_idx % self.length != 0 {
+            valid_destinations.push(player_idx - 1);
         }
 
         // right
-        if (self.player_idx + 1) % self.length != 0 {
-            valid_destinations.push(self.player_idx + 1);
-        }
-
-        // top
-        if self.player_idx + self.length < self.map.len() {
-            valid_destinations.push(self.player_idx + self.length);
+        if (player_idx + 1) % self.length != 0 {
+            valid_destinations.push(player_idx + 1);
         }
 
         // bottom
-        if self.player_idx > self.length {
-            valid_destinations.push(self.player_idx - self.length);
+        if player_idx + self.length < self.map.len() {
+            valid_destinations.push(player_idx + self.length);
         }
 
-        valid_destinations.retain(|&d| {
-            self.map[d] <= valid_height || (self.map[d] == 'E' as u8 && valid_height > 'z' as u8)}
-        );
-        valid_destinations.retain(|&x| x != prev_pos);
+        // top
+        if player_idx >= self.length {
+            valid_destinations.push(player_idx - self.length);
+        }
 
-
-        let x = self.player_idx % self.length;
-        let y = self.player_idx / self.length;
-        dbg!(self.player_idx, self.map[self.player_idx] as char);
-        dbg!(x, y);
-        let valid_dest_chars = valid_destinations.iter().map(|&d| self.map[d] as char).collect::<Vec<char>>();
-        dbg!(valid_dest_chars);
-        println!();
-
-        valid_destinations
+        valid_destinations.retain(|&d| self.map[d] <= valid_height);
+        valid_destinations.iter().map(|&d| (d, 1)).collect::<Vec<(usize, usize)>>()
     }
 
-    fn walk(&mut self, prev_pos: usize) {
-        if self.map[self.player_idx] == 'E' as u8 {
-            self.paths_found.push(self.cur_nbr_steps);
-            return;
-        }
+    fn get_heuristic(&self, pos: usize) -> usize {
+        let pos_x = pos % self.length;
+        let pos_y = pos / self.length;
+        let goal_x = self.goal_idx % self.length;
+        let goal_y = self.goal_idx / self.length;
 
-        if self.player_idx == 0 && prev_pos == 0 {
-            return;
-        }
-
-        let current_height = self.map[self.player_idx];
-        let mut valid_destinations = self.get_valid_destinations_for_player(current_height, prev_pos);
-
-        let cur_nbr_steps_before_walk = self.cur_nbr_steps;
-        let player_pos_before_walk = self.player_idx;
-
-        // dbg!(&prev_pos);
-        // dbg!(self.player_idx);
-        // dbg!(&valid_destinations);
-
-        for valid_dest in &valid_destinations {
-            self.player_idx = *valid_dest;
-            self.cur_nbr_steps += 1;
-            self.walk(player_pos_before_walk);
-            self.player_idx = player_pos_before_walk;
-            self.cur_nbr_steps = cur_nbr_steps_before_walk;
-        }
-    }
-
-    fn get_fewest_steps_to_goal(&mut self) -> usize {
-        self.walk(usize::MAX);
-
-        dbg!(&self.paths_found);
-        *self.paths_found.iter().min().unwrap()
+        usize::abs_diff(goal_x, pos_x) + usize::abs_diff(goal_y, pos_y)
     }
 }
 
+fn part1(map: &Map) -> usize {
+    astar(
+        &map.start_player_idx,
+        |&p| map.get_valid_destinations_for_player(p).into_iter(),
+        |&p| map.get_heuristic(p),
+        |&p| p == map.goal_idx)
+        .unwrap()
+        .1
+}
+
+fn part2(map: &Map) -> usize {
+    let all_starting_points = map.map.iter()
+        .enumerate()
+        .filter_map(|(idx, &val)| if val == 96 || val == 97 { Some(idx) } else { None })
+        .collect::<Vec<usize>>();
+
+    *all_starting_points.iter().filter_map(
+        |start| {
+            astar(
+                start,
+                |&p| map.get_valid_destinations_for_player(p).into_iter(),
+                |&p| map.get_heuristic(p),
+                |&p| p == map.goal_idx)
+        })
+        .map(|(p1, p2) | p2)
+        .collect::<Vec<usize>>().iter()
+        .min().unwrap()
+}
+
 pub fn run() {
-    let file_str = fs::read_to_string("inputs/testday12").unwrap();
-    let player_idx = file_str.find('S').unwrap();
-    let (len, height) = (file_str.find('\n').unwrap(), file_str.matches('\n').count());
-    let mut map = Map {
+    let mut file_str = fs::read_to_string("inputs/day12").unwrap();
+    let len = file_str.find('\n').unwrap();
+    file_str.retain(|c| c != '\n');
+
+    let map = Map {
         length: len,
-        height,
         map: file_str.chars().filter_map(|c|
             if c == 'S' {
                 Some('a' as u8 - 1) // Starting position is the lowest
+            } else if c == 'E' {
+                Some('z' as u8 + 1) // ...and goal the highest
             } else if c != '\n' {
                 Some(c as u8)
             } else {
                 None
             }).collect::<Vec<u8>>(),
-        player_idx,
-        paths_found: vec![],
-        cur_nbr_steps: 0
+        start_player_idx: file_str.find('S').unwrap(),
+        goal_idx: file_str.find('E').unwrap()
     };
 
-    // dbg!(&map);
-
     println!("Day 12: ");
-    println!("Part 1: {}", map.get_fewest_steps_to_goal());
+    println!("Part 1: {}", part1(&map));
+    println!("Part 2: {}", part2(&map));
     println!("----------");
 }
