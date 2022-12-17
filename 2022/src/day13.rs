@@ -1,21 +1,37 @@
+use std::cmp::Ordering;
+use std::cmp::Ordering::{Equal, Greater, Less};
 use std::fmt::{Debug, Display, Formatter};
 use std::fs;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use itertools::{
     Itertools,
     EitherOrBoth,
 };
-use crate::day13::ComparisonResult::{EQUIV, RIGHT, WRONG};
-
-#[derive(Debug, Eq, PartialEq)]
-enum ComparisonResult {
-    RIGHT,
-    WRONG,
-    EQUIV
-}
 
 struct Packet {
     children: Option<Vec<Packet>>,
     val: Option<u8>
+}
+
+impl Eq for Packet {}
+
+impl PartialEq<Self> for Packet {
+    fn eq(&self, other: &Self) -> bool {
+        Packet::compare(self, other) == Equal
+    }
+}
+
+impl PartialOrd<Self> for Packet {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Packet::compare(self, other))
+    }
+}
+
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> Ordering {
+        Packet::compare(self, other)
+    }
 }
 
 impl Display for Packet {
@@ -90,26 +106,26 @@ impl Packet {
         }
     }
 
-    fn compare(packet1: &Packet, packet2: &Packet) -> ComparisonResult {
+    fn compare(packet1: &Packet, packet2: &Packet) -> Ordering {
         if packet1.val.is_some() && packet2.val.is_some() {
             let nbr1 = packet1.val.unwrap();
             let nbr2 = packet2.val.unwrap();
 
             return if nbr1 == nbr2 {
-                EQUIV
+                Equal
             } else if nbr1 < nbr2 {
-                RIGHT
+                Less
             } else {
-                WRONG
+                Greater
             }
         }
 
         if packet1.children.is_none() && packet1.val.is_none() && packet2.children.is_none() && packet2.val.is_none() {
-            return EQUIV;
+            return Equal;
         } else if packet1.children.is_none() && packet1.val.is_none() {
-            return RIGHT;
+            return Less;
         } else if packet2.children.is_none() && packet2.val.is_none() {
-            return WRONG;
+            return Greater;
         }
 
         // there's gotta be a better way to do this but i need a ref to a vec so i need it on the stack...
@@ -126,20 +142,20 @@ impl Packet {
 
         for pair in children1.iter().zip_longest(children2.iter()) {
             match pair {
-                EitherOrBoth::Left(_) => return WRONG, // if the right side runs out of elements
-                EitherOrBoth::Right(_) => return RIGHT, // same with left
+                EitherOrBoth::Left(_) => return Greater, // if the right side runs out of elements
+                EitherOrBoth::Right(_) => return Less, // same with left
                 EitherOrBoth::Both(l, r) => {
                     let comparison_result = Packet::compare(l, r);
                     match comparison_result {
-                        RIGHT => return RIGHT,
-                        WRONG => return WRONG,
-                        EQUIV => {}
+                        Less => return Less,
+                        Greater => return Greater,
+                        Equal => {}
                     }
                 },
             }
         }
 
-        EQUIV
+        Equal
     }
 }
 
@@ -149,19 +165,27 @@ struct Pair {
 }
 
 impl Pair {
-    fn compare(&self) -> ComparisonResult {
+    fn compare(&self) -> Ordering {
         Packet::compare(&self.packet1, &self.packet2)
     }
 }
 
 fn part1(pairs: &Vec<Pair>) -> usize {
     pairs.iter().enumerate()
-        .filter_map(|(idx, p)| if p.compare() == RIGHT { Some(idx + 1) } else { None })
+        .filter_map(|(idx, p)| if p.compare() == Less { Some(idx + 1) } else { None })
         .sum()
 }
 
+fn part2(packets: &mut Vec<Packet>) -> usize {
+    quicksort::quicksort(packets);
+    for p in packets {
+        println!("{}", p)
+    }
+    42
+}
+
 pub fn run() {
-    let file_str = fs::read_to_string("inputs/day13").unwrap();
+    let file_str = fs::read_to_string("inputs/testday13").unwrap();
     let pairs = file_str.split("\n\n")
         .map(| p_str | {
            let mut packet_split = p_str.split('\n');
@@ -172,8 +196,15 @@ pub fn run() {
         })
         .collect::<Vec<Pair>>();
 
+    let mut all_packets = file_str.split("\n")
+        .filter_map(|l| if l.len() != 0 { Some(l) } else { None })
+        .map(|res_str| Packet::parse(res_str))
+        .collect::<Vec<Packet>>();
+    all_packets.push(Packet::parse("[[2]]"));
+    all_packets.push(Packet::parse("[[6]]"));
+
     println!("Day 13: ");
     println!("Part 1: {}", part1(&pairs));
-    // println!("Part 2: {}", part2(&pairs));
+    println!("Part 2: {}", part2(&mut all_packets));
     println!("----------");
 }

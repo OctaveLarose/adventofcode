@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 pathfinding = "0.1.8"
 itertools = "0.10.5"
+quicksort = "1.1.0"
