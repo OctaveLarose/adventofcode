@@ -1,4 +1,16 @@
 use std::fs;
+use itertools::{
+    Itertools,
+    EitherOrBoth,
+};
+use crate::day13::ComparisonResult::{EQUIV, RIGHT, WRONG};
+
+#[derive(Debug)]
+enum ComparisonResult {
+    RIGHT,
+    WRONG,
+    EQUIV
+}
 
 #[derive(Debug)]
 struct Packet {
@@ -27,11 +39,11 @@ impl Packet {
                 val: None };
         }
 
-        let mut nbr_open = 0;
-        let mut nbr_closed = 0;
-
         Packet {
             children: {
+                let mut nbr_open = 0;
+                let mut nbr_closed = 0;
+
                 Some(str[1..str.len() - 1]
                     .split(|c| {
                         match c {
@@ -49,16 +61,53 @@ impl Packet {
         }
     }
 
-    fn compare(&self, packet2: &Packet) -> bool {
-        if self.val.is_some() && packet2.val.is_some() {
-            let nbr1 = self.val.unwrap();
+    fn compare(packet1: &Packet, packet2: &Packet) -> ComparisonResult {
+        if packet1.val.is_some() && packet2.val.is_some() {
+            let nbr1 = packet1.val.unwrap();
             let nbr2 = packet2.val.unwrap();
-            if nbr1 == nbr2 {
-                return true; // we continue? may need an output right order/wrong order/continue.
+
+            return if nbr1 == nbr2 {
+                EQUIV
+            } else if nbr1 < nbr2 {
+                RIGHT
+            } else {
+                WRONG
             }
-            return nbr1 < nbr2;
         }
-        false // TODO write
+
+        if packet1.children.is_some() && packet1.children.as_ref().unwrap().len() == 0 {
+            return RIGHT;
+        } else if packet2.children.is_some() && packet2.children.as_ref().unwrap().len() == 0 {
+            return WRONG;
+        }
+
+        let packet_from_val_1 = vec![Packet {children: None, val: packet1.val}];
+        let children1: &Vec<Packet> = match &packet1.children {
+            Some(c) => c,
+            _ => &packet_from_val_1
+        };
+        let packet_from_val_2 = vec![Packet {children: None, val: packet2.val}];
+        let children2: &Vec<Packet> = match &packet2.children {
+            Some(c) => c,
+            _ => &packet_from_val_2
+        };
+
+        for pair in children1.iter().zip_longest(children2.iter()) {
+            match pair {
+                EitherOrBoth::Left(_) => return WRONG, // if the right side runs out of elements
+                EitherOrBoth::Right(_) => return RIGHT, // same with left
+                EitherOrBoth::Both(l, r) => {
+                    let comparison_result = Packet::compare(l, r);
+                    match comparison_result {
+                        RIGHT => return RIGHT,
+                        WRONG => return WRONG,
+                        EQUIV => {}
+                    }
+                },
+            }
+        }
+
+        EQUIV
     }
 }
 
@@ -69,20 +118,24 @@ struct Pair {
 }
 
 impl Pair {
-    fn compare(&self) -> bool {
-        self.packet1.compare(&self.packet2)
+    fn compare(&self) -> ComparisonResult {
+        Packet::compare(&self.packet1, &self.packet2)
     }
 }
 
 fn part1(pairs: &Vec<Pair>) -> usize {
     // we'll use this for debugging.
-    for (idx, pair) in pairs.iter().enumerate() {
-        println!("{}: {}", idx, pair.compare());
-    }
+    // for (idx, pair) in pairs.iter().enumerate() {
+    //     println!("{}: {:?}", idx, pair.compare());
+    // }
 
-    pairs.iter().enumerate()
-        .filter_map(|(idx, p)| if p.compare() { Some(idx) } else { None })
-        .sum()
+    println!("{:?}", pairs[5].compare());
+
+    42
+
+    // pairs.iter().enumerate()
+    //     .filter_map(|(idx, p)| if p.compare() { Some(idx) } else { None })
+    //     .sum()
 }
 
 pub fn run() {
@@ -96,10 +149,6 @@ pub fn run() {
             }
         })
         .collect::<Vec<Pair>>();
-
-    // dbg!(&pairs[0]);
-    // dbg!(&pairs[1]);
-    dbg!(&pairs[7]);
 
     println!("Day 13: ");
     println!("Part 1: {}", part1(&pairs));
