@@ -97,7 +97,7 @@ impl Map {
         self.map_tiles[pos.1][pos.0 - MIN_X] == Air
     }
 
-    fn make_sand_fall(&mut self) -> SandStatus {
+    fn make_sand_fall(&mut self, has_ground: bool) -> SandStatus {
         let mut sand_pos = (SAND_SPAWN_X, SAND_SPAWN_Y);
 
         loop {
@@ -105,37 +105,13 @@ impl Map {
             let pos_down_l = (sand_pos.0 - 1, sand_pos.1 + 1);
             let pos_down_r = (sand_pos.0 + 1, sand_pos.1 + 1);
 
-            if sand_pos.1 >= MAX_Y - 1 {
+            if has_ground {
+                if sand_pos.1 == self.ground_idx - 1 {
+                    self.map_tiles[sand_pos.1][sand_pos.0 - MIN_X] = Sand;
+                    return AtRest;
+                }
+            } else if sand_pos.1 >= MAX_Y - 1 {
                 return InAbyss;
-            }
-
-            if self.can_move_sand(pos_down) {
-                sand_pos = pos_down;
-                continue;
-            } else if self.can_move_sand(pos_down_l) {
-                sand_pos = pos_down_l;
-                continue;
-            } else if self.can_move_sand(pos_down_r) {
-                sand_pos = pos_down_r;
-                continue;
-            } else {
-                self.map_tiles[sand_pos.1][sand_pos.0 - MIN_X] = Sand;
-                return AtRest
-            }
-        }
-    }
-
-    fn make_sand_fall_with_ground(&mut self) -> SandStatus {
-        let mut sand_pos = (SAND_SPAWN_X, SAND_SPAWN_Y);
-
-        loop {
-            let pos_down = (sand_pos.0, sand_pos.1 + 1);
-            let pos_down_l = (sand_pos.0 - 1, sand_pos.1 + 1);
-            let pos_down_r = (sand_pos.0 + 1, sand_pos.1 + 1);
-
-            if sand_pos.1 == self.ground_idx - 1 {
-                self.map_tiles[sand_pos.1][sand_pos.0 - MIN_X] = Sand;
-                return AtRest;
             }
 
             if self.can_move_sand(pos_down) {
@@ -158,7 +134,7 @@ impl Map {
         let mut nbr_sand = 0;
 
         loop {
-            match self.make_sand_fall() {
+            match self.make_sand_fall(false) {
                 InAbyss => {break;}
                 _ => { nbr_sand += 1; }
             }
@@ -171,7 +147,7 @@ impl Map {
         let mut nbr_sand = 0;
 
         loop {
-            self.make_sand_fall_with_ground();
+            self.make_sand_fall(true);
             nbr_sand += 1;
             if self.map_tiles[SAND_SPAWN_Y][SAND_SPAWN_X - MIN_X] == Sand {
                 break;
@@ -183,7 +159,7 @@ impl Map {
 }
 
 pub fn run() {
-    let file_str = fs::read_to_string("inputs/testday14").unwrap();
+    let file_str = fs::read_to_string("inputs/day14").unwrap();
     let file_lines = file_str.lines().collect::<Vec<&str>>();
 
     println!("Day 14: ");
