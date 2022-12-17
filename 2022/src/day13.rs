@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Display, Formatter};
 use std::fs;
 use itertools::{
     Itertools,
@@ -12,10 +13,38 @@ enum ComparisonResult {
     EQUIV
 }
 
-#[derive(Debug)]
 struct Packet {
     children: Option<Vec<Packet>>,
     val: Option<u8>
+}
+
+impl Display for Packet {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        if self.val.is_some() {
+            write!(f, "{}", self.val.unwrap())
+        } else {
+            write!(f, "[").expect("WRITE FAILED");
+            if self.children.is_some() {
+                for (child, is_last_element) in self.children.as_ref().unwrap().iter().enumerate()
+                    .map(|(i, w)| (w, i == self.children.as_ref().unwrap().len() - 1)) {
+                    Packet::fmt(&child, f).expect("WRITE FAILED");
+                    if !is_last_element {
+                        write!(f, ",").expect("WRITE FAILED");
+                    }
+                }
+            }
+            write!(f, "]")
+        }
+    }
+}
+
+impl Display for Pair {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.packet1.fmt(f).expect("Couldn't print packet 1");
+        write!(f, "\n").expect("WRITE FAILED");
+        self.packet2.fmt(f).expect("WRITE FAILED");
+        write!(f, "\n")
+    }
 }
 
 impl Packet {
@@ -81,6 +110,7 @@ impl Packet {
             return WRONG;
         }
 
+        // there's gotta be a better way to do this but i need a ref to a vec so i need it on the stack...
         let packet_from_val_1 = vec![Packet {children: None, val: packet1.val}];
         let children1: &Vec<Packet> = match &packet1.children {
             Some(c) => c,
@@ -111,7 +141,6 @@ impl Packet {
     }
 }
 
-#[derive(Debug)]
 struct Pair {
     packet1: Packet,
     packet2: Packet,
@@ -124,8 +153,15 @@ impl Pair {
 }
 
 fn part1(pairs: &Vec<Pair>) -> usize {
-    for (idx, pair) in pairs.iter().enumerate() {
-        println!("{}: {:?}", idx + 1, pair.compare());
+    // for (idx, pair) in pairs.iter().enumerate()
+    //     .filter_map(|(idx, p)| if p.compare() == RIGHT { Some((idx + 1, p)) } else { None })
+    //      {
+    //     println!("{}: {:?}", idx, pair);
+    // }
+    //
+    // println!("{:?}", pairs[7].compare());
+    for p in pairs {
+        println!("{}", &p);
     }
 
     pairs.iter().enumerate()
