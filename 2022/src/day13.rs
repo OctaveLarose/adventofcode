@@ -104,7 +104,9 @@ impl Packet {
             }
         }
 
-        if packet1.children.is_none() && packet1.val.is_none() {
+        if packet1.children.is_none() && packet1.val.is_none() && packet2.children.is_none() && packet2.val.is_none() {
+            return EQUIV;
+        } else if packet1.children.is_none() && packet1.val.is_none() {
             return RIGHT;
         } else if packet2.children.is_none() && packet2.val.is_none() {
             return WRONG;
@@ -153,17 +155,6 @@ impl Pair {
 }
 
 fn part1(pairs: &Vec<Pair>) -> usize {
-    // for (idx, pair) in pairs.iter().enumerate()
-    //     .filter_map(|(idx, p)| if p.compare() == RIGHT { Some((idx + 1, p)) } else { None })
-    //      {
-    //     println!("{}: {:?}", idx, pair);
-    // }
-    //
-    // println!("{:?}", pairs[7].compare());
-    for p in pairs {
-        println!("{}", &p);
-    }
-
     pairs.iter().enumerate()
         .filter_map(|(idx, p)| if p.compare() == RIGHT { Some(idx + 1) } else { None })
         .sum()
