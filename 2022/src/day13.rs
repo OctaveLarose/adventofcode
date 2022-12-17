@@ -5,7 +5,7 @@ use itertools::{
 };
 use crate::day13::ComparisonResult::{EQUIV, RIGHT, WRONG};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 enum ComparisonResult {
     RIGHT,
     WRONG,
@@ -75,9 +75,9 @@ impl Packet {
             }
         }
 
-        if packet1.children.is_some() && packet1.children.as_ref().unwrap().len() == 0 {
+        if packet1.children.is_none() && packet1.val.is_none() {
             return RIGHT;
-        } else if packet2.children.is_some() && packet2.children.as_ref().unwrap().len() == 0 {
+        } else if packet2.children.is_none() && packet2.val.is_none() {
             return WRONG;
         }
 
@@ -124,22 +124,17 @@ impl Pair {
 }
 
 fn part1(pairs: &Vec<Pair>) -> usize {
-    // we'll use this for debugging.
-    // for (idx, pair) in pairs.iter().enumerate() {
-    //     println!("{}: {:?}", idx, pair.compare());
-    // }
+    for (idx, pair) in pairs.iter().enumerate() {
+        println!("{}: {:?}", idx + 1, pair.compare());
+    }
 
-    println!("{:?}", pairs[5].compare());
-
-    42
-
-    // pairs.iter().enumerate()
-    //     .filter_map(|(idx, p)| if p.compare() { Some(idx) } else { None })
-    //     .sum()
+    pairs.iter().enumerate()
+        .filter_map(|(idx, p)| if p.compare() == RIGHT { Some(idx + 1) } else { None })
+        .sum()
 }
 
 pub fn run() {
-    let file_str = fs::read_to_string("inputs/testday13").unwrap();
+    let file_str = fs::read_to_string("inputs/day13").unwrap();
     let pairs = file_str.split("\n\n")
         .map(| p_str | {
            let mut packet_split = p_str.split('\n');
