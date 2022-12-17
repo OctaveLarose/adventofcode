@@ -1,20 +1,16 @@
 use std::cmp::Ordering;
 use std::cmp::Ordering::{Equal, Greater, Less};
-use std::fmt::{Debug, Display, Formatter};
 use std::fs;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use itertools::{
     Itertools,
     EitherOrBoth,
 };
 
+#[derive(Eq)]
 struct Packet {
     children: Option<Vec<Packet>>,
     val: Option<u8>
 }
-
-impl Eq for Packet {}
 
 impl PartialEq<Self> for Packet {
     fn eq(&self, other: &Self) -> bool {
@@ -34,32 +30,27 @@ impl Ord for Packet {
     }
 }
 
-impl Display for Packet {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl ToString for Packet {
+    fn to_string(&self) -> String {
+        let mut packet_str = String::new();
+
         if self.val.is_some() {
-            write!(f, "{}", self.val.unwrap())
+            packet_str.push_str(&*self.val.unwrap().to_string())
         } else {
-            write!(f, "[").expect("WRITE FAILED");
+            packet_str.push_str("[");
             if self.children.is_some() {
                 for (child, is_last_element) in self.children.as_ref().unwrap().iter().enumerate()
                     .map(|(i, w)| (w, i == self.children.as_ref().unwrap().len() - 1)) {
-                    Packet::fmt(&child, f).expect("WRITE FAILED");
+                    packet_str.push_str(&*child.to_string());
                     if !is_last_element {
-                        write!(f, ",").expect("WRITE FAILED");
+                        packet_str.push_str(",");
                     }
                 }
             }
-            write!(f, "]")
+            packet_str.push_str("]");
         }
-    }
-}
 
-impl Display for Pair {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        self.packet1.fmt(f).expect("Couldn't print packet 1");
-        write!(f, "\n").expect("WRITE FAILED");
-        self.packet2.fmt(f).expect("WRITE FAILED");
-        write!(f, "\n")
+        packet_str
     }
 }
 
@@ -159,42 +150,37 @@ impl Packet {
     }
 }
 
-struct Pair {
-    packet1: Packet,
-    packet2: Packet,
-}
-
-impl Pair {
-    fn compare(&self) -> Ordering {
-        Packet::compare(&self.packet1, &self.packet2)
-    }
-}
-
-fn part1(pairs: &Vec<Pair>) -> usize {
+fn part1(pairs: &Vec<(Packet, Packet)>) -> usize {
     pairs.iter().enumerate()
-        .filter_map(|(idx, p)| if p.compare() == Less { Some(idx + 1) } else { None })
+        .filter_map(|(idx, (p1, p2))| if Packet::compare(p1, p2) == Less { Some(idx + 1) } else { None })
         .sum()
 }
 
 fn part2(packets: &mut Vec<Packet>) -> usize {
     quicksort::quicksort(packets);
-    for p in packets {
-        println!("{}", p)
-    }
-    42
+
+    let product_dividers = packets.iter().enumerate()
+        .filter_map(|(idx, p)| {
+            if p.to_string() == "[[2]]" || p.to_string() == "[[6]]" {
+                Some(idx + 1)
+            } else {
+                None
+            }
+        })
+        .product::<usize>();
+
+    product_dividers
 }
 
 pub fn run() {
-    let file_str = fs::read_to_string("inputs/testday13").unwrap();
+    let file_str = fs::read_to_string("inputs/day13").unwrap();
     let pairs = file_str.split("\n\n")
         .map(| p_str | {
            let mut packet_split = p_str.split('\n');
-            Pair {
-                packet1: Packet::parse(packet_split.nth(0).unwrap()),
-                packet2: Packet::parse(packet_split.nth(0).unwrap())
-            }
+            (Packet::parse(packet_split.nth(0).unwrap()),
+             Packet::parse(packet_split.nth(0).unwrap()))
         })
-        .collect::<Vec<Pair>>();
+        .collect::<Vec<(Packet, Packet)>>();
 
     let mut all_packets = file_str.split("\n")
         .filter_map(|l| if l.len() != 0 { Some(l) } else { None })
