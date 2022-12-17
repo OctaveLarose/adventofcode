@@ -8,6 +8,11 @@ struct Packet {
 
 impl Packet {
     fn parse(str: &str) -> Packet {
+        // a number
+        if str.chars().next().unwrap() != '[' {
+            return Packet {children: None, val: Some(str.parse::<u8>().unwrap())}
+        }
+
         // we assume they're the first and last if there's only one of each.
         if str.matches('[').count() == 1 && str.matches(']').count() == 1 {
             let children_str = &str[1..str.len() - 1];
@@ -22,30 +27,26 @@ impl Packet {
                 val: None };
         }
 
-        let mut children = vec![];
         let mut nbr_open = 0;
         let mut nbr_closed = 0;
-        let mut idx_first_open = None;
-        for (idx, char) in str[1..str.len() - 1].chars().enumerate() {
-            match char {
-                '[' => {
-                    nbr_open += 1;
-                    if idx_first_open.is_none() {
-                        idx_first_open = Some(idx);
-                    }
-                },
-                ']' => {
-                    nbr_closed += 1;
-                    if nbr_open == nbr_closed {
-                        children.push(Packet::parse(&str[idx_first_open.unwrap() + 1..idx + 2]));
-                        idx_first_open = None;
-                    }
-                }
-                _ => {}
-            }
-        }
 
-        Packet { children: Some(children), val: None }
+        Packet {
+            children: {
+                Some(str[1..str.len() - 1]
+                    .split(|c| {
+                        match c {
+                            '[' => nbr_open += 1,
+                            ']' => nbr_closed += 1,
+                            _ => {}
+                        };
+                        return c == ',' && nbr_open == nbr_closed // i.e. we are in the outermost list scope, the current packet
+                    })
+                    .map(|c_str| Packet::parse(c_str))
+                    .collect::<Vec<Packet>>()
+                )
+            },
+            val: None
+        }
     }
 
     fn compare(&self, packet2: &Packet) -> bool {
@@ -97,8 +98,8 @@ pub fn run() {
         .collect::<Vec<Pair>>();
 
     // dbg!(&pairs[0]);
-    dbg!(&pairs[1]);
-    // dbg!(&pairs[6]);
+    // dbg!(&pairs[1]);
+    dbg!(&pairs[7]);
 
     println!("Day 13: ");
     println!("Part 1: {}", part1(&pairs));
