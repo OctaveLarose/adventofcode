@@ -2,14 +2,50 @@ use std::fs;
 
 #[derive(Debug)]
 struct Packet {
-    children: Vec<Packet>,
+    children: Option<Vec<Packet>>,
     val: Option<u8>
 }
 
 impl Packet {
-    fn parse(_str: &str) -> Packet {
-        // TODO write
-        Packet { children: vec![], val: None }
+    fn parse(str: &str) -> Packet {
+        // we assume they're the first and last if there's only one of each.
+        if str.matches('[').count() == 1 && str.matches(']').count() == 1 {
+            let children_str = &str[1..str.len() - 1];
+            if children_str.len() == 0 {
+                return Packet {children: None, val: None};
+            }
+            return Packet {
+                children: Some(children_str
+                    .split(',')
+                    .map(|nbr_str| Packet {children: None, val: nbr_str.parse::<u8>().ok()})
+                    .collect::<Vec<Packet>>()),
+                val: None };
+        }
+
+        let mut children = vec![];
+        let mut nbr_open = 0;
+        let mut nbr_closed = 0;
+        let mut idx_first_open = None;
+        for (idx, char) in str[1..str.len() - 1].chars().enumerate() {
+            match char {
+                '[' => {
+                    nbr_open += 1;
+                    if idx_first_open.is_none() {
+                        idx_first_open = Some(idx);
+                    }
+                },
+                ']' => {
+                    nbr_closed += 1;
+                    if nbr_open == nbr_closed {
+                        children.push(Packet::parse(&str[idx_first_open.unwrap() + 1..idx + 2]));
+                        idx_first_open = None;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        Packet { children: Some(children), val: None }
     }
 
     fn compare(&self, packet2: &Packet) -> bool {
@@ -60,7 +96,9 @@ pub fn run() {
         })
         .collect::<Vec<Pair>>();
 
-    dbg!(&pairs);
+    // dbg!(&pairs[0]);
+    dbg!(&pairs[1]);
+    // dbg!(&pairs[6]);
 
     println!("Day 13: ");
     println!("Part 1: {}", part1(&pairs));
