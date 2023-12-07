@@ -2,49 +2,42 @@ use std::fs::File;
 use std::usize;
 use std::io::{BufRead, BufReader};
 
+const DIGIT_STRS: [&str; 9] = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+
+fn is_digit_or_digit_string(c: char, slice_to_check: &str) -> Option<usize> {
+    match c {
+        '0'..='9' => Some(c as usize - '0' as usize),
+        'A'..='Z' | 'a'..='z' => {
+            let does_digit_str_match = DIGIT_STRS.iter()
+                .position(|digit_str| slice_to_check.starts_with(digit_str));
+
+            match does_digit_str_match {
+                Some(digit) => Some(digit + 1),
+                None => None,
+            }
+        },
+        _ => panic!("Non alphanumeric character in string.")
+    }
+}
 fn number_strs_to_nbr(line: &String) -> usize {
-    let digit_strs = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-    let mut first_digit: Option<usize> = None;
-    let mut last_digit: Option<usize> = None;
+    let first_digit = line.chars()
+        .enumerate()
+        .find_map(|(idx, c)| {
+            let start_slice = &line[idx..line.len() - 1];
+            is_digit_or_digit_string(c, start_slice)
+        })
+        .unwrap_or_else(|| panic!("First digit couldn't be found"));
 
-    for (idx, c) in line.chars().enumerate() {
-        if first_digit.is_none() {
-            first_digit = match c {
-                '0'..='9' => Some(c as usize - '0' as usize),
-                'A'..='Z' | 'a'..='z' => {
-                    let lol = digit_strs.iter()
-                        .enumerate()
-                        .filter_map(|(digit_idx, digit_str)|
-                            if line[idx..line.len() - 1].starts_with(digit_str) { Some(digit_idx + 1) } else { None }
-                        ).collect::<Vec<usize>>();
-                    if lol.is_empty() { None } else { Some(*lol.first().unwrap())}
-                },
-                _ => panic!("Non alphanumeric character in string.")
-            }
-        }
-    }
+    // Using rev(): we're starting from the end.
+    let last_digit = line.chars().rev()
+        .enumerate()
+        .find_map(|(idx, c)| {
+            let end_slice = &line[line.len() - idx - 1..line.len()];
+            is_digit_or_digit_string(c, end_slice)
+        })
+        .unwrap_or_else(|| panic!("Last digit couldn't be found"));
 
-    for (idx, c) in line.chars().rev().enumerate() {
-        if last_digit.is_none() {
-            last_digit = match c {
-                '0'..='9' => Some(c as usize - '0' as usize),
-                'A'..='Z' | 'a'..='z' => {
-                    let lol = digit_strs.iter()
-                        .enumerate()
-                        .filter_map(|(digit_idx, digit_str)|
-                            if line[line.len() - idx - 1..line.len()].starts_with(digit_str) { Some(digit_idx + 1) } else { None }
-                        ).collect::<Vec<usize>>();
-                    if lol.is_empty() {
-                        None
-                    } else {
-                        Some(*lol.first().unwrap())}
-                },
-                _ => panic!("Non alphanumeric character in string.")
-            }
-        }
-    }
-
-    first_digit.unwrap() * 10 + last_digit.unwrap()
+    first_digit * 10 + last_digit
 }
 
 fn digits_to_nbr(line: &String) -> usize {
@@ -62,7 +55,10 @@ fn digits_to_nbr(line: &String) -> usize {
 
 pub fn main() {
     let file = File::open("../inputs/day1").unwrap();
-    let lines = BufReader::new(file).lines().map(|s| s.unwrap()).collect::<Vec<String>>();
+    let lines = BufReader::new(file)
+        .lines()
+        .map(|s| s.unwrap())
+        .collect::<Vec<String>>();
 
     println!("Day 1: ");
     println!("Part 1: {}", lines.iter().map(|s| digits_to_nbr(s)).sum::<usize>());
