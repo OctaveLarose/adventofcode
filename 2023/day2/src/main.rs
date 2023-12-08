@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::fmt;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -62,6 +63,7 @@ impl Game {
         }
     }
 
+    // part 1 main function
     pub fn return_id_if_possible(&self, expectation: &RGB) -> Option<usize> {
         match self.rounds.iter()
             .any(|round| expectation.r < round.r || expectation.g < round.g || expectation.b < round.b)
@@ -69,6 +71,21 @@ impl Game {
             true => None,
             false => Some(self.id)
         }
+    }
+
+    // part 2 main function
+    pub fn get_game_power(&self) -> usize {
+        let mut max_r: Option<usize> = None;
+        let mut max_g: Option<usize> = None;
+        let mut max_b: Option<usize> = None;
+
+        for round in &self.rounds {
+            max_r = max(round.r, max_r);
+            max_g = max(round.g, max_g);
+            max_b = max(round.b, max_b);
+        }
+
+        max_r.unwrap() * max_g.unwrap() * max_b.unwrap()
     }
 }
 
@@ -81,10 +98,14 @@ fn main() {
         .map(|l|Game::parse(l.unwrap()))
         .collect::<Vec<Game>>();
 
-    dbg!(&games);
+    // dbg!(&games);
 
     let part1_expectation: RGB = RGB {r: Some(12), g: Some(13), b: Some(14)};
     println!("Part 1: {}", games.iter()
         .filter_map(|g| g.return_id_if_possible(&part1_expectation))
+        .sum::<usize>());
+
+    println!("Part 2: {}", games.iter()
+        .map(|g| g.get_game_power())
         .sum::<usize>());
 }
