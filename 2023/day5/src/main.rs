@@ -1,4 +1,3 @@
-use std::cmp::min;
 use std::fs;
 use itertools::Itertools;
 
@@ -15,6 +14,7 @@ struct Map {
 }
 
 impl Map {
+    // use the map to get an output from an input number
     pub fn map_nbr(&self, input_nbr: usize) -> usize {
         for pattern in &self.patterns {
             if pattern.source <= input_nbr && input_nbr <= pattern.source + pattern.range {
@@ -23,6 +23,17 @@ impl Map {
         }
 
         input_nbr // no match means return the number itself
+    }
+
+    // given an output of the existing map, return what the input was!
+    pub fn reverse_map_nbr(&self, next_map_nbr: usize) -> usize {
+        for pattern in &self.patterns {
+            if pattern.dest <= next_map_nbr && next_map_nbr <= pattern.dest + pattern.range {
+                return pattern.source + (next_map_nbr - pattern.dest);
+            }
+        }
+
+        next_map_nbr // no match means return the number itself
     }
 }
 
@@ -46,25 +57,22 @@ impl Almanac {
     }
 
     pub fn part2_get_lowest_location(&self) -> usize {
-        let mut seed_ranges = self.seeds.chunks(2);
-        let mut global_min = usize::MAX;
+        const ARBITRARY_HIGH_NUMBER: usize = 94293573459;
 
-        for seed_range in seed_ranges {
-            let mut local_min = usize::MAX;
-
-            for i in 0..seed_range[1] {
-                let mut val = seed_range[0] + i;
-                for map in &self.maps {
-                    val = map.map_nbr(val);
-                }
-                local_min = min(local_min, val);
+        for i in 0..ARBITRARY_HIGH_NUMBER {
+            let mut v = i;
+            for map in self.maps.iter().rev() {
+                v = map.reverse_map_nbr(v);
             }
 
-            global_min = min(global_min, local_min);
+            for seed_range in self.seeds.chunks(2) {
+                if seed_range[0] <= v && v <= seed_range[0] + seed_range[1] {
+                    return i
+                }
+            }
         }
 
-        global_min
-        // *seed_modifs.iter().min().unwrap()
+        panic!("Uh oh. Should never have gotten this far");
     }
 }
 
