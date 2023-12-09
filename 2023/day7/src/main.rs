@@ -6,21 +6,8 @@ use crate::CardType::*;
 use crate::HandType::*;
 
 #[derive(Debug, PartialOrd, PartialEq, Eq)]
-enum CardType {
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    Jack,
-    Queen,
-    King,
-    Ace
-}
+#[derive(Hash)]
+enum CardType { Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
 
 impl CardType {
     pub fn from_char(c: char) -> CardType {
@@ -56,7 +43,7 @@ enum HandType {
 
 #[derive(Debug)]
 struct Hand {
-    cards: Vec<CardType>, // i think it should be a vec of enums for the cards or something
+    cards: Vec<CardType>,
     hand_type: HandType
 }
 
@@ -73,9 +60,13 @@ impl Hand {
     }
 
     fn get_type(cards: &Vec<CardType>) -> HandType {
-        let unique_items = cards.into_iter().dedup_with_count().collect::<Vec<_>>();
+        let unique_items: Vec<(usize, &CardType)> = cards.iter().filter_map(|c| {
+            Some((cards.iter().filter(|c2: &&CardType| *c2 == c).count(), c)) })
+            .unique()
+            .collect();
 
-        // todo: why is dedup_with_count sometimes returning inaccurate results? urgh :(
+        // this RETURNED WRONG RESULTS for some reason >:(
+        // let unique_items = cards.into_iter().dedup_with_count().collect::<Vec<_>>();
 
         match unique_items.len() {
             1 => return FiveOfAKind,
@@ -101,6 +92,7 @@ impl Hand {
         }
     }
 
+    // main function for sort
     pub fn does_it_beat(&self, other_hand: &Hand) -> Ordering {
         if self.hand_type > other_hand.hand_type {
             return Greater;
@@ -156,15 +148,15 @@ impl HandAndBid {
 
 fn main() {
     let input_file = fs::read_to_string("../inputs/testday7").unwrap();
-    let mut hand_bid_pairs: Vec<HandAndBid> = input_file.lines().map(|line| HandAndBid::parse(line)).collect();
+    let mut hand_bid_pairs: Vec<HandAndBid> = input_file.lines()
+        .map(|line| HandAndBid::parse(line))
+        .collect();
 
     hand_bid_pairs.sort();
-
-    dbg!(&hand_bid_pairs);
 
     println!("Part 1: {}", hand_bid_pairs.iter()
         .enumerate()
         .map(|(rank, hand_and_bid)| (rank + 1) * hand_and_bid.bid )
         .sum::<usize>());
-    // println!("Part 2: {}", race_part2.get_nbr_winnable_ways());
+    println!("Part 2: {}", "todo");
 }
