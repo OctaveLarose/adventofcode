@@ -2,36 +2,34 @@ use std::cmp::Ordering;
 use std::cmp::Ordering::{Greater, Less};
 use itertools::Itertools;
 use std::fs;
-use crate::CardType::*;
-use crate::HandType::*;
+use crate::part1::HandType::*;
 
-#[derive(Debug, PartialOrd, PartialEq, Eq)]
-#[derive(Hash)]
+#[derive(Debug, PartialOrd, PartialEq, Eq, Hash, Ord)]
 enum CardType { Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
 
 impl CardType {
     pub fn from_char(c: char) -> CardType {
         match c {
-            '2' => Two,
-            '3' => Three,
-            '4' => Four,
-            '5' => Five,
-            '6' => Six,
-            '7' => Seven,
-            '8' => Eight,
-            '9' => Nine,
-            'T' => Ten,
-            'J' => Jack,
-            'Q' => Queen,
-            'K' => King,
-            'A' => Ace,
+            '2' => CardType::Two,
+            '3' => CardType::Three,
+            '4' => CardType::Four,
+            '5' => CardType::Five,
+            '6' => CardType::Six,
+            '7' => CardType::Seven,
+            '8' => CardType::Eight,
+            '9' => CardType::Nine,
+            'T' => CardType::Ten,
+            'J' => CardType::Jack,
+            'Q' => CardType::Queen,
+            'K' => CardType::King,
+            'A' => CardType::Ace,
             invalid_card => panic!("Invalid card: {:?}", invalid_card)
         }
     }
 }
 
 #[derive(Debug, PartialOrd, PartialEq, Eq)]
-enum HandType {
+pub(crate) enum HandType {
     HighCard,
     OnePair,
     TwoPair,
@@ -42,19 +40,19 @@ enum HandType {
 }
 
 #[derive(Debug)]
-struct Hand {
-    cards: Vec<CardType>,
-    hand_type: HandType
+pub(crate) struct Hand<T> {
+    pub(crate) cards: Vec<T>, // template is because it can be either a part1::CardType or a part2::CardType
+    pub(crate) hand_type: HandType
 }
 
-impl Hand {
-    pub fn from_str(str: String) -> Hand {
+impl<T: PartialOrd> Hand<T> {
+    fn from_str(str: String) -> Hand<CardType> {
         let cards = str.chars()
             .map(CardType::from_char)
             .collect::<Vec<CardType>>();
 
         Hand {
-            hand_type: Hand::get_type(&cards),
+            hand_type: Hand::<T>::get_type(&cards),
             cards
         }
     }
@@ -93,7 +91,7 @@ impl Hand {
     }
 
     // main function for sort
-    pub fn does_it_beat(&self, other_hand: &Hand) -> Ordering {
+    pub fn does_it_beat(&self, other_hand: &Hand<T>) -> Ordering {
         if self.hand_type > other_hand.hand_type {
             return Greater;
         } else if self.hand_type < other_hand.hand_type {
@@ -112,44 +110,44 @@ impl Hand {
 }
 
 #[derive(Debug)]
-struct HandAndBid {
-    hand: Hand,
-    bid: usize
+pub(crate) struct HandAndBid<T> {
+    pub(crate) hand: Hand<T>,
+    pub(crate) bid: usize
 }
 
-impl Eq for HandAndBid {}
+impl<T: Eq> Eq for HandAndBid<T> {}
 
-impl PartialEq<Self> for HandAndBid {
+impl<T: PartialEq> PartialEq<Self> for HandAndBid<T> {
     fn eq(&self, _: &Self) -> bool {
-        panic!("Hands can't be equal. Should this ever get invoked? Not a rhetorical question, idk.")
+        panic!("Hands can't be equal. Should this ever get invoked?")
     }
 }
 
-impl PartialOrd<Self> for HandAndBid {
+impl<T: PartialOrd> PartialOrd<Self> for HandAndBid<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.hand.does_it_beat(&other.hand))
     }
 }
 
-impl Ord for HandAndBid {
+impl<T: Ord> Ord for HandAndBid<T> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.hand.does_it_beat(&other.hand)
     }
 }
 
-impl HandAndBid {
-    pub fn parse(input_str: &str) -> HandAndBid {
+impl<T> HandAndBid<T> {
+    fn parse(input_str: &str) -> HandAndBid<CardType> {
         HandAndBid {
-            hand: Hand::from_str(String::from(input_str.split_whitespace().nth(0).unwrap())),
+            hand: Hand::<CardType>::from_str(String::from(input_str.split_whitespace().nth(0).unwrap())),
             bid: input_str.split_whitespace().nth(1).unwrap().parse::<usize>().unwrap()
         }
     }
 }
 
-fn main() {
-    let input_file = fs::read_to_string("../inputs/testday7").unwrap();
-    let mut hand_bid_pairs: Vec<HandAndBid> = input_file.lines()
-        .map(|line| HandAndBid::parse(line))
+pub fn part1() {
+    let input_file = fs::read_to_string("../inputs/day7").unwrap();
+    let mut hand_bid_pairs: Vec<HandAndBid<CardType>> = input_file.lines()
+        .map(|line| HandAndBid::<CardType>::parse(line))
         .collect();
 
     hand_bid_pairs.sort();
@@ -158,5 +156,4 @@ fn main() {
         .enumerate()
         .map(|(rank, hand_and_bid)| (rank + 1) * hand_and_bid.bid )
         .sum::<usize>());
-    println!("Part 2: {}", "todo");
 }
