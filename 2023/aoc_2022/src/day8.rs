@@ -72,6 +72,33 @@ fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) {
     println!("Part 1: {}", nbr_steps);
 }
 
+fn part2(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) {
+    let mut nbr_steps = 0;
+    let mut nodes: Vec<Rc<RefCell<Node>>> = nodes.iter().filter_map(|n|
+        match n.borrow().name[2] == 'A' {
+            true => Some(n.clone()),
+            false => None
+        }).collect();
+    let mut dir_circ: CircularVec<&Dir> = CircularVec::from_iter(directions.iter());
+
+    while true {
+        if nodes.iter().all(|n| n.borrow().name[2] == 'Z') {
+            println!("Part 2: {}", nbr_steps);
+            return;
+        }
+        let dir = dir_circ.next();
+
+        nodes = nodes.iter().map(|n| {
+            match dir {
+                LEFT => n.borrow().get_left().clone(),
+                RIGHT => n.borrow().get_right().clone(),
+            }
+        }).collect::<Vec<Rc<RefCell<Node>>>>();
+
+        nbr_steps += 1;
+    }
+}
+
 pub fn run() {
     let input_file_str = fs::read_to_string("../inputs/day8").unwrap();
     let directions: Vec<Dir> = input_file_str.lines().nth(0).unwrap().chars().map(|c|
@@ -93,5 +120,6 @@ pub fn run() {
         cur_node.borrow_mut().link_with(left_node, right_node);
     }
 
-    part1(&nodes, &directions);
+    // part1(&nodes, &directions);
+    part2(&nodes, &directions);
 }
