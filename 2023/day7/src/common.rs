@@ -1,0 +1,144 @@
+use std::cmp::Ordering;
+use std::cmp::Ordering::{Greater, Less};
+use itertools::Itertools;
+use crate::common::HandType::{FiveOfAKind, FourOfAKind, FullHouse, HighCard, OnePair, ThreeOfAKind, TwoPair};
+
+#[derive(Debug, PartialOrd, PartialEq, Eq, Hash, Ord)]
+pub enum CardType { Joker, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
+
+impl CardType {
+    pub fn from_char(c: char) -> CardType {
+        match c {
+            '2' => CardType::Two,
+            '3' => CardType::Three,
+            '4' => CardType::Four,
+            '5' => CardType::Five,
+            '6' => CardType::Six,
+            '7' => CardType::Seven,
+            '8' => CardType::Eight,
+            '9' => CardType::Nine,
+            'T' => CardType::Ten,
+            'J' => CardType::Jack,
+            'Q' => CardType::Queen,
+            'K' => CardType::King,
+            'A' => CardType::Ace,
+            invalid_card => panic!("Invalid card: {:?}", invalid_card)
+        }
+    }
+}
+
+#[derive(Debug, PartialOrd, PartialEq, Eq)]
+pub(crate) enum HandType {
+    HighCard,
+    OnePair,
+    TwoPair,
+    ThreeOfAKind,
+    FullHouse,
+    FourOfAKind,
+    FiveOfAKind
+}
+
+#[derive(Debug)]
+pub(crate) struct Hand {
+    pub(crate) cards: Vec<CardType>, // template is because it can be either a part1::CardType or a part2::CardType
+    pub(crate) hand_type: HandType
+}
+
+impl Hand {
+    fn from_str(str: String) -> Hand {
+        let cards = str.chars()
+            .map(CardType::from_char)
+            .collect::<Vec<CardType>>();
+
+        Hand {
+            hand_type: Hand::get_type(&cards),
+            cards
+        }
+    }
+
+    pub fn get_type(cards: &Vec<CardType>) -> HandType {
+        let unique_items: Vec<(usize, &CardType)> = cards.iter().filter_map(|c| {
+            Some((cards.iter().filter(|c2: &&CardType| *c2 == c).count(), c)) })
+            .unique()
+            .collect();
+
+        // this RETURNED WRONG RESULTS for some reason >:(
+        // let unique_items = cards.into_iter().dedup_with_count().collect::<Vec<_>>();
+
+        match unique_items.len() {
+            1 => return FiveOfAKind,
+            2 => {
+                match unique_items.iter().next().unwrap() {
+                    (4, _) | (1, _) => return FourOfAKind,
+                    (3, _) | (2, _) => return FullHouse,
+                    _ => panic!("Should be an impossible combination of cards.")
+                }
+            }
+            3 => {
+                if unique_items.iter().any(|(nbr, _)| *nbr == 3) {
+                    return ThreeOfAKind
+                } else if unique_items.iter().filter(|(nbr, _)| *nbr == 2).count() == 2 {
+                    return TwoPair
+                } else {
+                    panic!("Should be an impossible combination of cards.")
+                }
+            },
+            4 => OnePair,
+            5 => HighCard,
+            _ => panic!("...there are more than 5 cards. What?")
+        }
+    }
+
+    // main function for sort
+    pub fn does_it_beat(&self, other_hand: &Hand) -> Ordering {
+        if self.hand_type > other_hand.hand_type {
+            return Greater;
+        } else if self.hand_type < other_hand.hand_type {
+            return Less;
+        } else {
+            for (ours, theirs) in self.cards.iter().zip(&other_hand.cards) {
+                if ours > theirs {
+                    return Greater;
+                } else if ours < theirs {
+                    return Less;
+                }
+            }
+        }
+        panic!("I thought there were no hands that were exactly the same?")
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct HandAndBid {
+    pub(crate) hand: Hand,
+    pub(crate) bid: usize
+}
+
+impl Eq for HandAndBid {}
+
+impl PartialEq<Self> for HandAndBid {
+    fn eq(&self, _: &Self) -> bool {
+        panic!("Hands can't be equal. Should this ever get invoked?")
+    }
+}
+
+impl PartialOrd<Self> for HandAndBid {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.hand.does_it_beat(&other.hand))
+    }
+}
+
+impl Ord for HandAndBid {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.hand.does_it_beat(&other.hand)
+    }
+}
+
+impl HandAndBid {
+    pub(crate) fn parse(input_str: &str) -> HandAndBid {
+        HandAndBid {
+            hand: Hand::from_str(String::from(input_str.split_whitespace().nth(0).unwrap())),
+            bid: input_str.split_whitespace().nth(1).unwrap().parse::<usize>().unwrap()
+        }
+    }
+}
