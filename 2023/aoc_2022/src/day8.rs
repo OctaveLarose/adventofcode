@@ -58,7 +58,7 @@ impl Debug for Node {
 
 fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) {
     let mut nbr_steps = 0;
-    let mut cur_node = nodes.iter().next().unwrap().clone();
+    let mut cur_node = nodes.iter().find(|n| n.borrow().compare_name("AAA")).unwrap().clone();
     let mut dir_circ: CircularVec<&Dir> = CircularVec::from_iter(directions.iter());
 
     while !cur_node.borrow().is_end {
@@ -73,7 +73,7 @@ fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) {
 }
 
 pub fn run() {
-    let input_file_str = fs::read_to_string("../inputs/testday8_2").unwrap();
+    let input_file_str = fs::read_to_string("../inputs/day8").unwrap();
     let directions: Vec<Dir> = input_file_str.lines().nth(0).unwrap().chars().map(|c|
         match c {
             'L' => LEFT,
