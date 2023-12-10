@@ -73,6 +73,8 @@ pub fn run() {
         .map(|s| Card::parse(s))
         .collect::<Vec<Card>>();
 
+    println!("Day 4: ");
     println!("Part 1: {}", cards.iter().map(|c| c.get_value()).sum::<usize>());
     println!("Part 2: {}", part2(&cards));
+    println!("----------");
 }

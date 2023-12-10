@@ -232,6 +232,8 @@ fn part2() {
 }
 
 pub fn run() {
+    println!("Day 7: ");
     part1();
     part2();
+    println!("----------");
 }

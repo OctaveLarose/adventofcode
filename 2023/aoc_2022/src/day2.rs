@@ -100,6 +100,7 @@ pub(crate) fn run() {
 
     // dbg!(&games);
 
+    println!("Day 2: ");
     let part1_expectation: RGB = RGB {r: Some(12), g: Some(13), b: Some(14)};
     println!("Part 1: {}", games.iter()
         .filter_map(|g| g.return_id_if_possible(&part1_expectation))
@@ -108,4 +109,6 @@ pub(crate) fn run() {
     println!("Part 2: {}", games.iter()
         .map(|g| g.get_game_power())
         .sum::<usize>());
+
+    println!("----------");
 }

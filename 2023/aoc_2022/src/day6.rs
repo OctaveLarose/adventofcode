@@ -54,6 +54,8 @@ pub fn run() {
     let races = parse_part1(&input_file);
     let race_part2 = parse_part2(&input_file);
 
+    println!("Day 6: ");
     println!("Part 1: {}", part1(&races));
     println!("Part 2: {}", race_part2.get_nbr_winnable_ways());
+    println!("----------");
 }
