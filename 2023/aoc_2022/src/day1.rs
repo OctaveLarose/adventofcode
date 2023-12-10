@@ -53,7 +53,7 @@ fn digits_to_nbr(line: &String) -> usize {
 }
 
 
-pub fn main() {
+pub fn run() {
     let file = File::open("../inputs/day1").unwrap();
     let lines = BufReader::new(file)
         .lines()

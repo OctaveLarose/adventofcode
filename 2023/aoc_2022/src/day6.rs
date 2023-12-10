@@ -49,7 +49,7 @@ fn part1(races: &Vec<Race>) -> usize {
     races.iter().map(|r| r.get_nbr_winnable_ways()).collect::<Vec<usize>>().iter().product()
 }
 
-fn main() {
+pub fn run() {
     let input_file = fs::read_to_string("../inputs/day6").unwrap();
     let races = parse_part1(&input_file);
     let race_part2 = parse_part2(&input_file);

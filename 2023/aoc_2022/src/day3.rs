@@ -73,7 +73,7 @@ impl Schematic {
     }
 }
 
-fn main() {
+pub fn run() {
     let schematic = Schematic::parse(fs::read_to_string("../inputs/testday3").unwrap());
 
     println!("Part 1: {}", schematic.part1_get_part_numbers_sum());

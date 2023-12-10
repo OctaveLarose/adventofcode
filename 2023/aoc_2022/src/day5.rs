@@ -109,7 +109,7 @@ impl Almanac {
     }
 }
 
-fn main() {
+pub fn run() {
     let almanac = Almanac::parse(fs::read_to_string("../inputs/day5").unwrap());
 
     println!("Part 1: {}", &almanac.part1_get_lowest_location());

@@ -67,7 +67,7 @@ fn part2(cards: &Vec<Card>) -> usize {
     wins_per_card.iter().sum()
 }
 
-fn main() {
+pub fn run() {
     let cards = fs::read_to_string("../inputs/day4").unwrap()
         .lines()
         .map(|s| Card::parse(s))

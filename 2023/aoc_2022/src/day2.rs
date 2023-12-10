@@ -91,7 +91,7 @@ impl Game {
 
 
 
-fn main() {
+pub(crate) fn run() {
     let file = File::open("../inputs/day2").unwrap();
     let games: Vec<Game> = BufReader::new(file)
         .lines()
