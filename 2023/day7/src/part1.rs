@@ -5,7 +5,7 @@ use std::fs;
 use crate::part1::HandType::*;
 
 #[derive(Debug, PartialOrd, PartialEq, Eq, Hash, Ord)]
-enum CardType { Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
+pub enum CardType { Joker, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
 
 impl CardType {
     pub fn from_char(c: char) -> CardType {
@@ -40,24 +40,24 @@ pub(crate) enum HandType {
 }
 
 #[derive(Debug)]
-pub(crate) struct Hand<T> {
-    pub(crate) cards: Vec<T>, // template is because it can be either a part1::CardType or a part2::CardType
+pub(crate) struct Hand {
+    pub(crate) cards: Vec<CardType>, // template is because it can be either a part1::CardType or a part2::CardType
     pub(crate) hand_type: HandType
 }
 
-impl<T: PartialOrd> Hand<T> {
-    fn from_str(str: String) -> Hand<CardType> {
+impl Hand {
+    fn from_str(str: String) -> Hand {
         let cards = str.chars()
             .map(CardType::from_char)
             .collect::<Vec<CardType>>();
 
         Hand {
-            hand_type: Hand::<T>::get_type(&cards),
+            hand_type: Hand::get_type(&cards),
             cards
         }
     }
 
-    fn get_type(cards: &Vec<CardType>) -> HandType {
+    pub fn get_type(cards: &Vec<CardType>) -> HandType {
         let unique_items: Vec<(usize, &CardType)> = cards.iter().filter_map(|c| {
             Some((cards.iter().filter(|c2: &&CardType| *c2 == c).count(), c)) })
             .unique()
@@ -91,7 +91,7 @@ impl<T: PartialOrd> Hand<T> {
     }
 
     // main function for sort
-    pub fn does_it_beat(&self, other_hand: &Hand<T>) -> Ordering {
+    pub fn does_it_beat(&self, other_hand: &Hand) -> Ordering {
         if self.hand_type > other_hand.hand_type {
             return Greater;
         } else if self.hand_type < other_hand.hand_type {
@@ -110,35 +110,35 @@ impl<T: PartialOrd> Hand<T> {
 }
 
 #[derive(Debug)]
-pub(crate) struct HandAndBid<T> {
-    pub(crate) hand: Hand<T>,
+pub(crate) struct HandAndBid {
+    pub(crate) hand: Hand,
     pub(crate) bid: usize
 }
 
-impl<T: Eq> Eq for HandAndBid<T> {}
+impl Eq for HandAndBid {}
 
-impl<T: PartialEq> PartialEq<Self> for HandAndBid<T> {
+impl PartialEq<Self> for HandAndBid {
     fn eq(&self, _: &Self) -> bool {
         panic!("Hands can't be equal. Should this ever get invoked?")
     }
 }
 
-impl<T: PartialOrd> PartialOrd<Self> for HandAndBid<T> {
+impl PartialOrd<Self> for HandAndBid {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.hand.does_it_beat(&other.hand))
     }
 }
 
-impl<T: Ord> Ord for HandAndBid<T> {
+impl Ord for HandAndBid {
     fn cmp(&self, other: &Self) -> Ordering {
         self.hand.does_it_beat(&other.hand)
     }
 }
 
-impl<T> HandAndBid<T> {
-    fn parse(input_str: &str) -> HandAndBid<CardType> {
+impl HandAndBid {
+    fn parse(input_str: &str) -> HandAndBid {
         HandAndBid {
-            hand: Hand::<CardType>::from_str(String::from(input_str.split_whitespace().nth(0).unwrap())),
+            hand: Hand::from_str(String::from(input_str.split_whitespace().nth(0).unwrap())),
             bid: input_str.split_whitespace().nth(1).unwrap().parse::<usize>().unwrap()
         }
     }
@@ -146,8 +146,8 @@ impl<T> HandAndBid<T> {
 
 pub fn part1() {
     let input_file = fs::read_to_string("../inputs/day7").unwrap();
-    let mut hand_bid_pairs: Vec<HandAndBid<CardType>> = input_file.lines()
-        .map(|line| HandAndBid::<CardType>::parse(line))
+    let mut hand_bid_pairs: Vec<HandAndBid> = input_file.lines()
+        .map(|line| HandAndBid::parse(line))
         .collect();
 
     hand_bid_pairs.sort();
