@@ -1,14 +1,15 @@
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
-use std::fs;
+use std::{fs};
 use std::rc::Rc;
 use crate::day8::Dir::*;
 use circular_vec::CircularVec;
+use num_integer::Integer;
 
 #[derive(Debug)]
 enum Dir {
     LEFT,
-    RIGHT
+    RIGHT,
 }
 
 struct Node {
@@ -35,7 +36,7 @@ impl Node {
 
     // there's definitely an easier way of doing this, and to avoid declaring this function in the first place.
     fn compare_name(&self, str: &str) -> bool {
-        str[0..3].chars().zip(&self.name).all(|(a, b) | a == *b)
+        str[0..3].chars().zip(&self.name).all(|(a, b)| a == *b)
     }
 
     pub fn get_left(&self) -> Rc<RefCell<Node>> {
@@ -56,7 +57,7 @@ impl Debug for Node {
     }
 }
 
-fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) {
+fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) -> usize {
     let mut nbr_steps = 0;
     let mut cur_node = nodes.iter().find(|n| n.borrow().compare_name("AAA")).unwrap().clone();
     let mut dir_circ: CircularVec<&Dir> = CircularVec::from_iter(directions.iter());
@@ -69,11 +70,11 @@ fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) {
 
         nbr_steps += 1;
     }
-    println!("Part 1: {}", nbr_steps);
+
+    nbr_steps
 }
 
-fn part2(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) {
-    let mut nbr_steps = 0;
+fn part2(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) -> usize {
     let mut nodes: Vec<Rc<RefCell<Node>>> = nodes.iter().filter_map(|n|
         match n.borrow().name[2] == 'A' {
             true => Some(n.clone()),
@@ -81,22 +82,25 @@ fn part2(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) {
         }).collect();
     let mut dir_circ: CircularVec<&Dir> = CircularVec::from_iter(directions.iter());
 
-    while true {
-        if nodes.iter().all(|n| n.borrow().name[2] == 'Z') {
-            println!("Part 2: {}", nbr_steps);
-            return;
-        }
-        let dir = dir_circ.next();
-
-        nodes = nodes.iter().map(|n| {
-            match dir {
-                LEFT => n.borrow().get_left().clone(),
-                RIGHT => n.borrow().get_right().clone(),
+    nodes.iter().map(|n| {
+        let mut nbr_steps: usize = 0;
+        let mut cur_node = n.clone();
+        loop {
+            if cur_node.borrow().name[2] == 'Z' {
+                return nbr_steps;
             }
-        }).collect::<Vec<Rc<RefCell<Node>>>>();
+            let dir = dir_circ.next();
 
-        nbr_steps += 1;
-    }
+            cur_node = match dir {
+                LEFT => cur_node.borrow().get_left().clone(),
+                RIGHT => cur_node.borrow().get_right().clone(),
+            };
+
+            nbr_steps += 1;
+        }
+    })
+        .reduce(|acc, e| num_integer::lcm(acc, e))
+        .unwrap()
 }
 
 pub fn run() {
@@ -106,7 +110,7 @@ pub fn run() {
             'L' => LEFT,
             'R' => RIGHT,
             _ => panic!("Invalid direction.")
-    }).collect();
+        }).collect();
     let all_nodes_str: Vec<(&str, &str, &str)> = input_file_str.lines().skip(2)
         .collect::<Vec<&str>>().iter()
         .map(|s| (&s[0..3], &s[7..10], &s[12..15]))
@@ -120,6 +124,6 @@ pub fn run() {
         cur_node.borrow_mut().link_with(left_node, right_node);
     }
 
-    // part1(&nodes, &directions);
-    part2(&nodes, &directions);
+    println!("Part 1: {}", part1(&nodes, &directions));
+    println!("Part 2: {}", part2(&nodes, &directions));
 }
