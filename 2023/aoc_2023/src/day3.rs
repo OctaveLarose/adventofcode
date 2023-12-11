@@ -1,27 +1,27 @@
 use std::fs;
+use crate::map::{Map2D, MapElement, CharMapElement};
 
-type Pos = usize; // maybe a (usize, usize) is more convenient?
 type Symbol = char; // should that be an enum of the possible ones?
 
 #[derive(Debug)]
 struct Number {
     val: usize,
-    pos: Pos,
+    pos: usize,
     nbr_len: usize // number of digits. to not have to recalculate it constantly
 }
 
+
 #[derive(Debug)]
 struct Schematic {
-    width: usize,
-    height: usize,
+    map: Map2D<CharMapElement>,
     numbers: Vec<Number>,
-    symbols: Vec<(Symbol, Pos)>
+    symbols: Vec<(Symbol, usize)>
 }
 
 impl Schematic {
     pub fn parse(input_file: String) -> Schematic {
         let mut numbers: Vec<Number> = vec![];
-        let mut symbols: Vec<(Symbol, Pos)> = vec![];
+        let mut symbols: Vec<(Symbol, usize)> = vec![];
 
         let mut it = input_file.chars().enumerate();
         while let Some(tile) = it.next() {
@@ -44,8 +44,7 @@ impl Schematic {
         }
 
         Schematic {
-            width: input_file.find('\n').unwrap(),
-            height: input_file.lines().count(),
+            map: Map2D::parse(input_file.as_str()),
             numbers,
             symbols }
     }
@@ -60,14 +59,16 @@ impl Schematic {
                 //     continue; // if it's not even close to the symbol. this check can be made more precise, but it's OK as is
                 // }
 
+                todo!("remove the next bits and call self.map.get_positions_around() instead ");
+
                 // nbr to the right of the sym
                 if nbr.pos != 0 && *sym_pos == nbr.pos - 1 {
                     nbrs_sum += nbr.val;
                 }
 
                 // nbr is above sym
-                if nbr.pos + self.width - 1 <= *sym_pos &&
-                    *sym_pos <= nbr.pos + self.width + nbr.nbr_len + 1 {
+                if nbr.pos + self.map.width - 1 <= *sym_pos &&
+                    *sym_pos <= nbr.pos + self.map.width + nbr.nbr_len + 1 {
                     nbrs_sum += nbr.val
                 }
             }
