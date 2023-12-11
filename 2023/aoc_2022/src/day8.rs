@@ -67,7 +67,6 @@ fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) -> usize {
             LEFT => cur_node.borrow().get_left().clone(),
             RIGHT => cur_node.borrow().get_right().clone(),
         };
-
         nbr_steps += 1;
     }
 
@@ -75,30 +74,27 @@ fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) -> usize {
 }
 
 fn part2(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) -> usize {
-    let mut nodes: Vec<Rc<RefCell<Node>>> = nodes.iter().filter_map(|n|
+    let mut start_nodes: Vec<Rc<RefCell<Node>>> = nodes.iter().filter_map(|n|
         match n.borrow().name[2] == 'A' {
             true => Some(n.clone()),
             false => None
         }).collect();
     let mut dir_circ: CircularVec<&Dir> = CircularVec::from_iter(directions.iter());
 
-    nodes.iter().map(|n| {
-        let mut nbr_steps: usize = 0;
-        let mut cur_node = n.clone();
-        loop {
-            if cur_node.borrow().name[2] == 'Z' {
-                return nbr_steps;
+    start_nodes.iter()
+        .map(|n| {
+            let mut nbr_steps: usize = 0;
+            let mut cur_node = n.clone();
+            while cur_node.borrow().name[2] != 'Z' {
+                cur_node = match dir_circ.next() {
+                    LEFT => cur_node.borrow().get_left().clone(),
+                    RIGHT => cur_node.borrow().get_right().clone(),
+                };
+
+                nbr_steps += 1;
             }
-            let dir = dir_circ.next();
-
-            cur_node = match dir {
-                LEFT => cur_node.borrow().get_left().clone(),
-                RIGHT => cur_node.borrow().get_right().clone(),
-            };
-
-            nbr_steps += 1;
-        }
-    })
+            nbr_steps // for each start node, get the number of steps it takes for a cycle
+        })
         .reduce(|acc, e| num_integer::lcm(acc, e))
         .unwrap()
 }
