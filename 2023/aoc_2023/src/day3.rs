@@ -13,13 +13,13 @@ struct Number {
 #[derive(Debug)]
 struct Schematic {
     width: usize,
+    height: usize,
     numbers: Vec<Number>,
     symbols: Vec<(Symbol, Pos)>
 }
 
 impl Schematic {
     pub fn parse(input_file: String) -> Schematic {
-        let width = input_file.find('\n').unwrap();
         let mut numbers: Vec<Number> = vec![];
         let mut symbols: Vec<(Symbol, Pos)> = vec![];
 
@@ -43,7 +43,11 @@ impl Schematic {
             }
         }
 
-        Schematic { width, numbers, symbols }
+        Schematic {
+            width: input_file.find('\n').unwrap(),
+            height: input_file.lines().count(),
+            numbers,
+            symbols }
     }
 
     pub fn part1_get_part_numbers_sum(&self) -> usize {
@@ -78,5 +82,6 @@ pub fn run() {
 
     println!("Day 3: ");
     println!("Part 1: {}", schematic.part1_get_part_numbers_sum());
+    // println!("Part 2: {}", schematic.part1_get_part_numbers_sum());
     println!("----------");
 }
