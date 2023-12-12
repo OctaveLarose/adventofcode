@@ -95,10 +95,10 @@ impl Schematic {
     pub fn part1_get_part_numbers_sum(&self) -> usize {
         self.numbers.iter().filter_map(|nbr| {
             for (_, sym_pos) in &self.symbols {
-                for surround_pos in self.map.get_positions_around(*sym_pos) {
-                    match surround_pos {
+                for surround_pos_opt in self.map.get_positions_around(*sym_pos) {
+                    match surround_pos_opt {
                         None => {}
-                        Some(v) => match nbr.pos <= v && v <= nbr.pos + nbr.nbr_len {
+                        Some(surround_pos) => match nbr.pos <= surround_pos && surround_pos <= nbr.pos + nbr.nbr_len - 1 {
                             true => { return Some(nbr.val); } //dbg!(nbr.val);
                             false => {}
                         }
@@ -114,7 +114,7 @@ impl Schematic {
 pub fn run() {
     let schematic = Schematic::parse(fs::read_to_string("../inputs/day3").unwrap());
 
-    println!("{}", &schematic);
+    // println!("{}", &schematic);
 
     println!("Day 3: ");
     println!("Part 1: {}", schematic.part1_get_part_numbers_sum());
