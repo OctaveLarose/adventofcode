@@ -1,16 +1,22 @@
+use num_integer::Integer;
 use crate::map::Direction::*;
 
 pub enum Direction {
-    NW, N, NE,
-    W, E,
-    SW, S, SE
+    NW,
+    N,
+    NE,
+    W,
+    E,
+    SW,
+    S,
+    SE,
 }
 
 #[derive(Debug)]
 pub struct Map2D<T> {
     pub(crate) width: usize,
-    height: usize,
-    tiles: Vec<T>,
+    pub(crate) height: usize,
+    pub(crate) tiles: Vec<T>,
 }
 
 pub trait MapElement {
@@ -19,7 +25,7 @@ pub trait MapElement {
 
 #[derive(Debug)]
 pub struct CharMapElement {
-    c: char
+    pub(crate) c: char,
 }
 
 impl MapElement for CharMapElement {
@@ -44,68 +50,39 @@ impl<T: MapElement> Map2D<T> {
 
     pub fn get_pos_in_dir(&self, pos: usize, dir: Direction) -> Option<usize> {
         match dir {
-            NW => self.get_pos_diag(pos, NW),
-            N => self.get_pos_above(pos),
-            NE => self.get_pos_diag(pos, NE),
-            W => self.get_pos_left(pos),
-            E => self.get_pos_right(pos),
-            SW => self.get_pos_diag(pos, SW),
-            S => self.get_pos_below(pos),
-            SE => self.get_pos_diag(pos, SE),
-        }
-    }
-
-    pub fn get_pos_left(&self, pos: usize) -> Option<usize> {
-        match pos / self.width == 0 {
-            true => None,
-            false => Some(pos - 1)
-        }
-    }
-
-    pub fn get_pos_right(&self, pos: usize) -> Option<usize> {
-        match pos % (self.width - 1) == 0 {
-            true => None,
-            false => Some(pos + 1)
-        }
-    }
-
-    pub fn get_pos_above(&self, pos: usize) -> Option<usize> {
-        match pos < self.width {
-            true => None,
-            false => Some(pos - self.width)
-        }
-    }
-
-    pub fn get_pos_below(&self, pos: usize) -> Option<usize> {
-        match pos < self.width * self.height - self.width {
-            true => None,
-            false => Some(pos + self.width)
-        }
-    }
-
-    pub fn get_pos_diag(&self, pos: usize, dir: Direction) -> Option<usize> {
-        match dir {
-            NW => match pos < self.width || pos / self.width == 0 {
-                true => None,
-                false => Some(pos - self.width - 1)
-            },
-            NE => todo!(),
-            SW => todo!(),
-            SE => todo!(),
-            _ => panic!("Not a valid diagonal")
+            NW => (!self.is_on_top_edge(pos) && !self.is_on_left_edge(pos)).then(|| pos - self.width - 1),
+            N => (!self.is_on_top_edge(pos)).then(|| pos - self.width),
+            NE => (!self.is_on_top_edge(pos) && !self.is_on_right_edge(pos)).then(|| pos - self.width + 1),
+            W => (!self.is_on_left_edge(pos)).then(|| pos - 1),
+            E => (!self.is_on_right_edge(pos)).then(|| pos + 1),
+            SW => (!self.is_on_bottom_edge(pos) && !self.is_on_left_edge(pos)).then(|| pos + self.width - 1),
+            S => (!self.is_on_bottom_edge(pos)).then(|| pos + self.width),
+            SE => (!self.is_on_bottom_edge(pos) && !self.is_on_right_edge(pos)).then(|| pos + self.width + 1),
         }
     }
 
     pub fn get_positions_around(&self, pos: usize) -> [Option<usize>; 8] {
-        // [None, self.get_pos_above(pos), None,
-        // self.get_pos_left(pos), self.get_pos_right(pos),
-        // None, self.get_pos_below(pos), None]
-
         [NW, N, NE, W, E, SW, S, SE]
             .map(|dir| self.get_pos_in_dir(pos, dir))
             .into_iter()
             .collect::<Vec<Option<usize>>>()
             .try_into()
             .unwrap()
+    }
+
+    fn is_on_left_edge(&self, pos: usize) -> bool {
+        pos == 0 || self.width.divides(&pos)
+    }
+
+    fn is_on_right_edge(&self, pos: usize) -> bool {
+        (pos + 1) % self.width == 0
+    }
+
+    fn is_on_top_edge(&self, pos: usize) -> bool {
+        pos < self.width
+    }
+
+    fn is_on_bottom_edge(&self, pos: usize) -> bool {
+        pos > self.width * self.height - self.width
     }
 }
