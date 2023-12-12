@@ -1,15 +1,30 @@
 use std::fmt::{Debug, Display, Formatter, Write};
 use std::fs;
+use itertools::Itertools;
 use crate::map::{Map2D, CharMapElement};
 
 type Symbol = char; // should that be an enum of the possible ones?
 
-#[derive(Debug)]
+#[derive(Debug, Hash)]
 struct Number {
     val: usize,
     pos: usize,
     nbr_len: usize, // number of digits. to not have to recalculate it constantly
 }
+
+impl Number {
+    pub fn is_pos_part_of_number(&self, surround_pos: usize) -> bool {
+        self.pos <= surround_pos && surround_pos <= self.pos + self.nbr_len - 1
+    }
+}
+
+impl PartialEq<Self> for Number {
+    fn eq(&self, other: &Self) -> bool {
+        self.val == other.val && self.pos == other.pos && self.nbr_len == other.nbr_len
+    }
+}
+
+impl Eq for Number {}
 
 
 #[derive(Debug)]
@@ -69,7 +84,7 @@ impl Schematic {
                             .map(|c| c.c)
                             .collect::<String>()
                             .parse::<usize>().unwrap(),
-                        pos: pos,
+                        pos,
                         nbr_len,
                     });
 
@@ -98,8 +113,8 @@ impl Schematic {
                 for surround_pos_opt in self.map.get_positions_around(*sym_pos) {
                     match surround_pos_opt {
                         None => {}
-                        Some(surround_pos) => match nbr.pos <= surround_pos && surround_pos <= nbr.pos + nbr.nbr_len - 1 {
-                            true => { return Some(nbr.val); } //dbg!(nbr.val);
+                        Some(surround_pos) => match nbr.is_pos_part_of_number(surround_pos) {
+                            true => return Some(nbr.val),
                             false => {}
                         }
                     }
@@ -107,6 +122,22 @@ impl Schematic {
             }
             None
         })
+            .sum()
+    }
+
+    pub fn part2_get_gear_ratios_sum(&self) -> usize {
+        self.symbols.iter()
+            .filter(|(sym, _)| *sym == '*')
+            .filter_map(|(_, sym_pos)| {
+                let numbers_around = self.map.get_positions_around(*sym_pos).iter()
+                    .filter_map(|surround_pos_opt| {
+                        surround_pos_opt.and_then(|surround_pos| self.numbers.iter().find(|nbr| nbr.is_pos_part_of_number(surround_pos)))
+                    })
+                    .unique()
+                    .collect::<Vec<&Number>>();
+
+                (numbers_around.len() == 2).then(|| numbers_around.iter().map(|n| { n.val }).product::<usize>())
+            })
             .sum()
     }
 }
@@ -118,6 +149,6 @@ pub fn run() {
 
     println!("Day 3: ");
     println!("Part 1: {}", schematic.part1_get_part_numbers_sum());
-    // println!("Part 2: {}", schematic.part1_get_part_numbers_sum());
+    println!("Part 2: {}", schematic.part2_get_gear_ratios_sum());
     println!("----------");
 }
