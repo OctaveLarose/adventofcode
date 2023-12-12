@@ -1,7 +1,11 @@
 use std::fs;
+use pathfinding::prelude::astar;
+use crate::day10::Pipe::Start;
+use crate::map::{Map2D, MapElement};
+use crate::map::Direction;
 
 // PipeOrGround would be more accurate. But eh.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[repr(u8)] // I don't use the chars defined in the enum, though. There's probably a way.
 enum Pipe {
     NS = b'|',
@@ -14,8 +18,8 @@ enum Pipe {
     Start = b'S'
 }
 
-impl Pipe {
-    pub fn from_char(c: char) -> Pipe {
+impl MapElement for Pipe {
+    fn parse_from_char(c: char) -> Pipe {
         match c {
             '|' => Pipe::NS,
             '-' => Pipe::EW,
@@ -30,32 +34,71 @@ impl Pipe {
     }
 }
 
-#[derive(Debug)]
+// type PipeMap = Map2D<Pipe>;
 struct PipeMap {
-    map: Vec<Pipe>,
-    width: usize,
-    height: usize
+    map: Map2D<Pipe>,
+    start_pos: usize
 }
 
 impl PipeMap {
-    pub fn parse(input_str: String) -> PipeMap {
+    pub fn parse(string: String) -> PipeMap {
+        let map = Map2D::<Pipe>::parse(string.as_str());
+        let start_pos = map.tiles.iter().position(|p| *p == Start).unwrap();
         PipeMap {
-            map: input_str.chars().filter_map(|c|
-                match c {
-                    '\n' => None,
-                    any => Some(Pipe::from_char(any))
-                }).collect(),
-            width: input_str.lines().nth(0).unwrap().len(),
-            height: input_str.lines().count()
+            map,
+            start_pos
         }
     }
 }
 
+impl PipeMap {
+    fn get_valid_destinations(&self, tile_idx: usize) -> Vec<(usize, &Pipe)> {
+        let mut valid_destinations = vec![];
+
+        match self.map.get(tile_idx) {
+            Pipe::NS => {
+                valid_destinations.push((self.map.get_pos_in_dir(tile_idx, Direction::N).unwrap(), self.map.get(tile_idx)));
+                valid_destinations.push((self.map.get_pos_in_dir(tile_idx, Direction::S).unwrap(), self.map.get(tile_idx)));
+            }
+            Pipe::EW => {}
+            Pipe::NE => {}
+            Pipe::NW => {}
+            Pipe::SW => {}
+            Pipe::SE => {}
+            Pipe::Ground => {}
+            Start => {}
+        }
+
+        valid_destinations
+    }
+
+    fn get_heuristic(&self, pos: usize) -> usize {
+        let pos_x = pos % self.map.width;
+        let pos_y = pos / self.map.width;
+        let goal_x = self.start_pos % self.map.width;
+        let goal_y = self.start_pos / self.map.width;
+
+        usize::abs_diff(goal_x, pos_x) + usize::abs_diff(goal_y, pos_y)
+    }
+}
+
+fn part1(pipe_map: &PipeMap) -> usize {
+    let a_star_result = astar(
+        &pipe_map.start_pos,
+        |&p| pipe_map.get_valid_destinations(p),
+        |&p| pipe_map.get_heuristic(p),
+        |&p| p == pipe_map.start_pos)
+        .unwrap();
+
+    dbg!(&a_star_result);
+    42
+}
 
 pub fn run() {
     let pipe_map = PipeMap::parse(fs::read_to_string("../inputs/testday10").unwrap());
 
-    dbg!(&pipe_map);
-    // println!("Part 1: {}", &histories.iter().map(part1_rec).sum::<isize>());
+    // dbg!(&pipe_map);
+
+    println!("Part 1: {}", part1(&pipe_map));
     // println!("Part 2: {}", &histories.iter().map(part2_rec).sum::<isize>());
 }

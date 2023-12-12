@@ -1,10 +1,9 @@
 use std::cell::RefCell;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Formatter};
 use std::{fs};
 use std::rc::Rc;
 use crate::day8::Dir::*;
 use circular_vec::CircularVec;
-use num_integer::Integer;
 
 #[derive(Debug)]
 enum Dir {

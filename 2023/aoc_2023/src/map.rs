@@ -48,6 +48,14 @@ impl<T: MapElement> Map2D<T> {
         }
     }
 
+    pub fn get(&self, pos: usize) -> &T {
+        self.tiles.get(pos).unwrap()
+    }
+
+    pub fn get_in_dir(&self, pos: usize, dir: Direction) -> &T {
+        self.tiles.get(self.get_pos_in_dir(pos, dir).unwrap()).unwrap()
+    }
+
     pub fn get_pos_in_dir(&self, pos: usize, dir: Direction) -> Option<usize> {
         match dir {
             NW => (!self.is_on_top_edge(pos) && !self.is_on_left_edge(pos)).then(|| pos - self.width - 1),

@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display, Formatter, Write};
+use std::fmt::{Debug, Display, Formatter};
 use std::fs;
 use itertools::Itertools;
 use crate::map::{Map2D, CharMapElement};
