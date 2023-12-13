@@ -1,6 +1,5 @@
 use std::fs;
 use pathfinding::prelude::astar;
-use crate::day10::Pipe::Start;
 use crate::map::{Map2D, MapElement, Pos};
 use crate::map::Direction;
 
@@ -42,7 +41,7 @@ struct PipeMap {
 impl PipeMap {
     pub fn parse(string: String) -> PipeMap {
         let map = Map2D::<Pipe>::parse(string.as_str());
-        let start_pos = map.tiles.iter().position(|p| *p == Start).unwrap();
+        let start_pos = map.tiles.iter().position(|p| *p == Pipe::Start).unwrap();
         PipeMap {
             map,
             start_pos
@@ -61,7 +60,7 @@ impl PipeMap {
             Pipe::NW => {[Direction::N, Direction::W].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
             Pipe::SW => {[Direction::S, Direction::W].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
             Pipe::SE => {[Direction::S, Direction::E].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
-            Start => {
+            Pipe::Start => {
                 // the tile to the north is only valid if it has a connection to the south.
                 if let Some(Pipe::NS) | Some(Pipe::SW) | Some(Pipe::SE) = self.map.get_in_dir(cur_pos, Direction::N)  {
                     valid_destinations.push(self.map.get_pos_in_dir(cur_pos, Direction::N));
@@ -85,9 +84,9 @@ impl PipeMap {
 
         valid_destinations.iter()
             .filter_map(|&des_opt| {
-                match des_opt == prev_pos { // no backtracking!
-                    true => None,
-                    false => des_opt.and_then(|dest| Some(((dest, Some(cur_pos)), 1)))
+                match des_opt != prev_pos { // no backtracking!
+                    true => des_opt.and_then(|dest| Some(((dest, Some(cur_pos)), 1))), // weeding out "None" destinations + for AStar, each tile is worth 1.
+                    false => None
                 }
             })
             .collect()
