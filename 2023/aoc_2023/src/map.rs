@@ -1,6 +1,8 @@
 use num_integer::Integer;
 use crate::map::Direction::*;
 
+pub type Pos = usize;
+
 pub enum Direction {
     NW,
     N,
@@ -48,15 +50,15 @@ impl<T: MapElement> Map2D<T> {
         }
     }
 
-    pub fn get(&self, pos: usize) -> &T {
+    pub fn get(&self, pos: Pos) -> &T {
         self.tiles.get(pos).unwrap()
     }
 
-    pub fn get_in_dir(&self, pos: usize, dir: Direction) -> &T {
-        self.tiles.get(self.get_pos_in_dir(pos, dir).unwrap()).unwrap()
+    pub fn get_in_dir(&self, pos: Pos, dir: Direction) -> Option<&T> {
+        self.get_pos_in_dir(pos, dir).and_then(|pos_in_dir| Some(self.tiles.get(pos_in_dir).unwrap()))
     }
 
-    pub fn get_pos_in_dir(&self, pos: usize, dir: Direction) -> Option<usize> {
+    pub fn get_pos_in_dir(&self, pos: Pos, dir: Direction) -> Option<Pos> {
         match dir {
             NW => (!self.is_on_top_edge(pos) && !self.is_on_left_edge(pos)).then(|| pos - self.width - 1),
             N => (!self.is_on_top_edge(pos)).then(|| pos - self.width),
@@ -69,28 +71,28 @@ impl<T: MapElement> Map2D<T> {
         }
     }
 
-    pub fn get_positions_around(&self, pos: usize) -> [Option<usize>; 8] {
+    pub fn get_positions_around(&self, pos: Pos) -> [Option<Pos>; 8] {
         [NW, N, NE, W, E, SW, S, SE]
             .map(|dir| self.get_pos_in_dir(pos, dir))
             .into_iter()
-            .collect::<Vec<Option<usize>>>()
+            .collect::<Vec<Option<Pos>>>()
             .try_into()
             .unwrap()
     }
 
-    fn is_on_left_edge(&self, pos: usize) -> bool {
+    fn is_on_left_edge(&self, pos: Pos) -> bool {
         pos == 0 || self.width.divides(&pos)
     }
 
-    fn is_on_right_edge(&self, pos: usize) -> bool {
+    fn is_on_right_edge(&self, pos: Pos) -> bool {
         (pos + 1) % self.width == 0
     }
 
-    fn is_on_top_edge(&self, pos: usize) -> bool {
+    fn is_on_top_edge(&self, pos: Pos) -> bool {
         pos < self.width
     }
 
-    fn is_on_bottom_edge(&self, pos: usize) -> bool {
+    fn is_on_bottom_edge(&self, pos: Pos) -> bool {
         pos > self.width * self.height - self.width
     }
 }

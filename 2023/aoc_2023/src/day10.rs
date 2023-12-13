@@ -1,7 +1,7 @@
 use std::fs;
 use pathfinding::prelude::astar;
 use crate::day10::Pipe::Start;
-use crate::map::{Map2D, MapElement};
+use crate::map::{Map2D, MapElement, Pos};
 use crate::map::Direction;
 
 // PipeOrGround would be more accurate. But eh.
@@ -37,7 +37,7 @@ impl MapElement for Pipe {
 // type PipeMap = Map2D<Pipe>;
 struct PipeMap {
     map: Map2D<Pipe>,
-    start_pos: usize
+    start_pos: Pos
 }
 
 impl PipeMap {
@@ -52,24 +52,71 @@ impl PipeMap {
 }
 
 impl PipeMap {
-    fn get_valid_destinations(&self, tile_idx: usize) -> Vec<(usize, &Pipe)> {
+    fn get_valid_destinations(&self, tile_idx: usize) -> Vec<(Pos, usize)> {
         let mut valid_destinations = vec![];
 
         match self.map.get(tile_idx) {
             Pipe::NS => {
-                valid_destinations.push((self.map.get_pos_in_dir(tile_idx, Direction::N).unwrap(), self.map.get(tile_idx)));
-                valid_destinations.push((self.map.get_pos_in_dir(tile_idx, Direction::S).unwrap(), self.map.get(tile_idx)));
+                valid_destinations.extend([
+                    self.map.get_pos_in_dir(tile_idx, Direction::N),
+                    self.map.get_pos_in_dir(tile_idx, Direction::S)]
+                );
             }
-            Pipe::EW => {}
-            Pipe::NE => {}
-            Pipe::NW => {}
-            Pipe::SW => {}
-            Pipe::SE => {}
+            Pipe::EW => {
+                valid_destinations.extend([
+                    self.map.get_pos_in_dir(tile_idx, Direction::E),
+                    self.map.get_pos_in_dir(tile_idx, Direction::W)]
+                );
+            }
+            Pipe::NE => {
+                valid_destinations.extend([
+                    self.map.get_pos_in_dir(tile_idx, Direction::N),
+                    self.map.get_pos_in_dir(tile_idx, Direction::E)]
+                );
+            }
+            Pipe::NW => {
+                valid_destinations.extend([
+                    self.map.get_pos_in_dir(tile_idx, Direction::N),
+                    self.map.get_pos_in_dir(tile_idx, Direction::W)]
+                );
+            }
+            Pipe::SW => {
+                valid_destinations.extend([
+                    self.map.get_pos_in_dir(tile_idx, Direction::S),
+                    self.map.get_pos_in_dir(tile_idx, Direction::W)]
+                );
+            }
+            Pipe::SE => {
+                valid_destinations.extend([
+                    self.map.get_pos_in_dir(tile_idx, Direction::S),
+                    self.map.get_pos_in_dir(tile_idx, Direction::E)]
+                );
+            }
+            Start => {
+                // the tile to the north is only valid if it has a connection to the south.
+                if let Some(Pipe::NS) | Some(Pipe::SW) | Some(Pipe::SE) = self.map.get_in_dir(tile_idx, Direction::N)  {
+                    valid_destinations.push(self.map.get_pos_in_dir(tile_idx, Direction::N));
+                }
+
+                // to the east, only valid if it connects to the west
+                if let Some(Pipe::EW) | Some(Pipe::SW) | Some(Pipe::NW) = self.map.get_in_dir(tile_idx, Direction::E) {
+                    valid_destinations.push(self.map.get_pos_in_dir(tile_idx, Direction::E));
+                }
+
+                if let Some(Pipe::EW) | Some(Pipe::SE) | Some(Pipe::NE) = self.map.get_in_dir(tile_idx, Direction::W) {
+                    valid_destinations.push(self.map.get_pos_in_dir(tile_idx, Direction::W));
+                }
+
+                if let Some(Pipe::NS) | Some(Pipe::NW) | Some(Pipe::NE) = self.map.get_in_dir(tile_idx, Direction::S) {
+                    valid_destinations.push(self.map.get_pos_in_dir(tile_idx, Direction::S))
+                }
+            },
             Pipe::Ground => {}
-            Start => {}
         }
 
-        valid_destinations
+        valid_destinations.iter()
+            .filter_map(|&des_opt| des_opt.and_then(|dest| Some((dest, 1))))
+            .collect::<Vec<(usize, Pos)>>()
     }
 
     fn get_heuristic(&self, pos: usize) -> usize {
