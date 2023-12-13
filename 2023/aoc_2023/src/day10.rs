@@ -4,7 +4,7 @@ use crate::day10::Pipe::Start;
 use crate::map::{Map2D, MapElement, Pos};
 use crate::map::Direction;
 
-// PipeOrGround would be more accurate. But eh.
+// PipeOrGround would be more accurate. But eh
 #[derive(Debug, PartialEq)]
 #[repr(u8)] // I don't use the chars defined in the enum, though. There's probably a way.
 enum Pipe {
@@ -34,7 +34,6 @@ impl MapElement for Pipe {
     }
 }
 
-// type PipeMap = Map2D<Pipe>;
 struct PipeMap {
     map: Map2D<Pipe>,
     start_pos: Pos
@@ -52,71 +51,46 @@ impl PipeMap {
 }
 
 impl PipeMap {
-    fn get_valid_destinations(&self, tile_idx: usize) -> Vec<(Pos, usize)> {
+    fn get_valid_destinations(&self, cur_pos: Pos, prev_pos: Option<Pos>) -> Vec<((Pos, Option<Pos>), usize)> {
         let mut valid_destinations = vec![];
 
-        match self.map.get(tile_idx) {
-            Pipe::NS => {
-                valid_destinations.extend([
-                    self.map.get_pos_in_dir(tile_idx, Direction::N),
-                    self.map.get_pos_in_dir(tile_idx, Direction::S)]
-                );
-            }
-            Pipe::EW => {
-                valid_destinations.extend([
-                    self.map.get_pos_in_dir(tile_idx, Direction::E),
-                    self.map.get_pos_in_dir(tile_idx, Direction::W)]
-                );
-            }
-            Pipe::NE => {
-                valid_destinations.extend([
-                    self.map.get_pos_in_dir(tile_idx, Direction::N),
-                    self.map.get_pos_in_dir(tile_idx, Direction::E)]
-                );
-            }
-            Pipe::NW => {
-                valid_destinations.extend([
-                    self.map.get_pos_in_dir(tile_idx, Direction::N),
-                    self.map.get_pos_in_dir(tile_idx, Direction::W)]
-                );
-            }
-            Pipe::SW => {
-                valid_destinations.extend([
-                    self.map.get_pos_in_dir(tile_idx, Direction::S),
-                    self.map.get_pos_in_dir(tile_idx, Direction::W)]
-                );
-            }
-            Pipe::SE => {
-                valid_destinations.extend([
-                    self.map.get_pos_in_dir(tile_idx, Direction::S),
-                    self.map.get_pos_in_dir(tile_idx, Direction::E)]
-                );
-            }
+        match self.map.get(cur_pos) {
+            Pipe::NS => {[Direction::N, Direction::S].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
+            Pipe::EW => {[Direction::E, Direction::W].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
+            Pipe::NE => {[Direction::N, Direction::E].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
+            Pipe::NW => {[Direction::N, Direction::W].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
+            Pipe::SW => {[Direction::S, Direction::W].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
+            Pipe::SE => {[Direction::S, Direction::E].map(|d| valid_destinations.push(self.map.get_pos_in_dir(cur_pos, d)));},
             Start => {
                 // the tile to the north is only valid if it has a connection to the south.
-                if let Some(Pipe::NS) | Some(Pipe::SW) | Some(Pipe::SE) = self.map.get_in_dir(tile_idx, Direction::N)  {
-                    valid_destinations.push(self.map.get_pos_in_dir(tile_idx, Direction::N));
+                if let Some(Pipe::NS) | Some(Pipe::SW) | Some(Pipe::SE) = self.map.get_in_dir(cur_pos, Direction::N)  {
+                    valid_destinations.push(self.map.get_pos_in_dir(cur_pos, Direction::N));
                 }
 
                 // to the east, only valid if it connects to the west
-                if let Some(Pipe::EW) | Some(Pipe::SW) | Some(Pipe::NW) = self.map.get_in_dir(tile_idx, Direction::E) {
-                    valid_destinations.push(self.map.get_pos_in_dir(tile_idx, Direction::E));
+                if let Some(Pipe::EW) | Some(Pipe::SW) | Some(Pipe::NW) = self.map.get_in_dir(cur_pos, Direction::E) {
+                    valid_destinations.push(self.map.get_pos_in_dir(cur_pos, Direction::E));
                 }
 
-                if let Some(Pipe::EW) | Some(Pipe::SE) | Some(Pipe::NE) = self.map.get_in_dir(tile_idx, Direction::W) {
-                    valid_destinations.push(self.map.get_pos_in_dir(tile_idx, Direction::W));
+                if let Some(Pipe::EW) | Some(Pipe::SE) | Some(Pipe::NE) = self.map.get_in_dir(cur_pos, Direction::W) {
+                    valid_destinations.push(self.map.get_pos_in_dir(cur_pos, Direction::W));
                 }
 
-                if let Some(Pipe::NS) | Some(Pipe::NW) | Some(Pipe::NE) = self.map.get_in_dir(tile_idx, Direction::S) {
-                    valid_destinations.push(self.map.get_pos_in_dir(tile_idx, Direction::S))
+                if let Some(Pipe::NS) | Some(Pipe::NW) | Some(Pipe::NE) = self.map.get_in_dir(cur_pos, Direction::S) {
+                    valid_destinations.push(self.map.get_pos_in_dir(cur_pos, Direction::S))
                 }
             },
             Pipe::Ground => {}
         }
 
         valid_destinations.iter()
-            .filter_map(|&des_opt| des_opt.and_then(|dest| Some((dest, 1))))
-            .collect::<Vec<(usize, Pos)>>()
+            .filter_map(|&des_opt| {
+                match des_opt == prev_pos { // no backtracking!
+                    true => None,
+                    false => des_opt.and_then(|dest| Some(((dest, Some(cur_pos)), 1)))
+                }
+            })
+            .collect()
     }
 
     fn get_heuristic(&self, pos: usize) -> usize {
@@ -131,18 +105,17 @@ impl PipeMap {
 
 fn part1(pipe_map: &PipeMap) -> usize {
     let a_star_result = astar(
-        &pipe_map.start_pos,
-        |&p| pipe_map.get_valid_destinations(p),
-        |&p| pipe_map.get_heuristic(p),
-        |&p| p == pipe_map.start_pos)
+        &(pipe_map.start_pos, None),
+        |(pos, prev_pos)| pipe_map.get_valid_destinations(*pos, *prev_pos),
+        |(pos, prev_pos)| pipe_map.get_heuristic(*pos),
+        |(pos, prev_pos)| prev_pos.is_some() && *pos == pipe_map.start_pos)
         .unwrap();
 
-    dbg!(&a_star_result);
-    42
+    a_star_result.1 / 2
 }
 
 pub fn run() {
-    let pipe_map = PipeMap::parse(fs::read_to_string("../inputs/testday10").unwrap());
+    let pipe_map = PipeMap::parse(fs::read_to_string("../inputs/day10").unwrap());
 
     // dbg!(&pipe_map);
 
