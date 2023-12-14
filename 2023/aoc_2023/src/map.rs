@@ -26,13 +26,11 @@ pub trait MapElement {
 }
 
 #[derive(Debug)]
-pub struct CharMapElement {
-    pub(crate) c: char,
-}
+pub struct CharMapElement(pub char);
 
 impl MapElement for CharMapElement {
     fn parse_from_char(c: char) -> CharMapElement {
-        CharMapElement { c }
+        CharMapElement(c)
     }
 }
 

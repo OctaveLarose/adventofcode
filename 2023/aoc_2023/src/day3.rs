@@ -69,19 +69,19 @@ impl Schematic {
         let mut numbers: Vec<Number> = vec![];
         let mut symbols: Vec<(Symbol, usize)> = vec![];
 
-        let mut it = map.tiles.iter().filter(|c| c.c != '\n').enumerate();
+        let mut it = map.tiles.iter().filter(|c| c.0 != '\n').enumerate();
         while let Some((pos, char_elem)) = it.next() {
-            match char_elem.c {
+            match char_elem.0 {
                 '.' => {}
                 '0'..='9' => {
                     let end_of_line = (pos / map.width + 1) * map.width;
                     let nbr_len = map.tiles[pos..end_of_line].iter()
-                        .position(|c| !c.c.is_numeric())
+                        .position(|c| !c.0.is_numeric())
                         .unwrap_or(end_of_line - pos);
 
                     numbers.push(Number {
                         val: map.tiles[pos..pos + nbr_len].iter()
-                            .map(|c| c.c)
+                            .map(|c| c.0)
                             .collect::<String>()
                             .parse::<usize>().unwrap(),
                         pos,
