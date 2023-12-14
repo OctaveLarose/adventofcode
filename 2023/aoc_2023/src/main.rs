@@ -13,13 +13,15 @@ mod day10;
 mod map;
 mod day11;
 mod day12;
+mod day13;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
 
     // default case
     if args.len() == 1 {
-        day12::run();
+        day13::run();
+        return;
     }
 
     match args.get(2).unwrap().parse::<usize>().unwrap() {
@@ -35,6 +37,7 @@ fn main() {
         10 => day10::run(),
         11 => day11::run(),
         12 => day12::run(),
+        13 => day13::run(),
         _ => panic!("Day not done yet, or invalid input.")
     }
 }

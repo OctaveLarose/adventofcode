@@ -4,8 +4,8 @@ use crate::map::{Map2D, MapElement, Pos};
 use crate::map::Direction;
 
 // PipeOrGround would be more accurate. But eh
-#[derive(Debug, PartialEq)]
-#[repr(u8)] // I don't use the chars defined in the enum, though. There's probably a way.
+#[derive(Debug, Copy, Clone, PartialEq)]
+#[repr(u8)]
 enum Pipe {
     NS = b'|',
     EW = b'-',
@@ -30,6 +30,10 @@ impl MapElement for Pipe {
             'S' => Pipe::Start,
             _ => panic!("Invalid character for pipe: {}", c)
         }
+    }
+
+    fn to_char(&self) -> char {
+        char::from(*self as u8)
     }
 }
 

@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Formatter, Write};
+use std::fmt::{Debug, Formatter};
 use std::fs;
 use itertools::{Itertools};
 use crate::day12::Spring::*;

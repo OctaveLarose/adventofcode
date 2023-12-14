@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Display, Formatter, Write};
 use num_integer::Integer;
 use crate::map::Direction::*;
 
@@ -14,15 +15,40 @@ pub enum Direction {
     SE,
 }
 
-#[derive(Debug)]
 pub struct Map2D<T> {
     pub(crate) width: usize,
     pub(crate) height: usize,
     pub(crate) tiles: Vec<T>,
 }
 
+impl<T: MapElement> Debug for Map2D<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+impl<T: MapElement> Display for Map2D<T> {
+    // There's probably a prettier way of doing this, but good enough for now.
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut i = 0;
+
+        while i < (self.width * self.height) {
+            f.write_char(self.tiles.get(i).unwrap().to_char()).expect("write failed");
+
+            if (i + 1) % self.width == 0 {
+                write!(f, "\n").expect("write failed");
+            }
+
+            i += 1;
+        }
+
+        Ok(())
+    }
+}
+
 pub trait MapElement {
     fn parse_from_char(c: char) -> Self;
+    fn to_char(&self) -> char; // Used for printing out the map
 }
 
 #[derive(Debug)]
@@ -31,6 +57,10 @@ pub struct CharMapElement(pub char);
 impl MapElement for CharMapElement {
     fn parse_from_char(c: char) -> CharMapElement {
         CharMapElement(c)
+    }
+
+    fn to_char(&self) -> char {
+        self.0
     }
 }
 
