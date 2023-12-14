@@ -1,3 +1,5 @@
+use std::env;
+
 mod day1;
 mod day2;
 mod day3;
@@ -13,16 +15,26 @@ mod day11;
 mod day12;
 
 fn main() {
-    // day1::run();
-    // day2::run();
-    // day3::run();
-    // day4::run();
-    // day5::run();
-    // day6::run();
-    // day7::run();
-    // day8::run();
-    // day9::run();
-    // day10::run();
-    // day11::run();
-    day12::run();
+    let args: Vec<_> = env::args().collect();
+
+    // default case
+    if args.len() == 1 {
+        day12::run();
+    }
+
+    match args.get(2).unwrap().parse::<usize>().unwrap() {
+        1 => day1::run(),
+        2 => day2::run(),
+        3 => day3::run(),
+        4 => day4::run(),
+        5 => day5::run(),
+        6 => day6::run(),
+        7 => day7::run(),
+        8 => day8::run(),
+        9 => day9::run(),
+        10 => day10::run(),
+        11 => day11::run(),
+        12 => day12::run(),
+        _ => panic!("Day not done yet, or invalid input.")
+    }
 }

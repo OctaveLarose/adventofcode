@@ -1,5 +1,6 @@
+use std::fmt::{Debug, Formatter, Write};
 use std::fs;
-use itertools::Itertools;
+use itertools::{Itertools};
 use crate::day12::Spring::*;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -18,10 +19,23 @@ impl Spring {
             _ => panic!("Invalid char for spring")
         }
     }
+
+    pub fn to_char(&self) -> char {
+        match self {
+            DOT => '.',
+            BROKEN => '#',
+            UNKNOWN => '?',
+        }
+    }
 }
 
-#[derive(Debug)]
 struct Springs(Vec<Spring>);
+
+impl Debug for Springs {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&*self.0.iter().map(Spring::to_char).join(""))
+    }
+}
 
 impl Springs {
     fn get_sizes(&self) -> SpringSizes {
@@ -67,12 +81,20 @@ impl Springs {
     }
 }
 
-#[derive(Debug)]
 struct SpringSizes(Vec<usize>);
+
+impl Debug for SpringSizes {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&*self.0.iter()
+            .map(|&num| num.to_string())
+            .collect::<Vec<_>>()
+            .join(" "))
+    }
+}
 
 impl PartialEq<Self> for SpringSizes {
     fn eq(&self, other: &Self) -> bool {
-        self.0.len() == other.0.len() && self.0.iter().zip(other.0.iter()).all(|(a, b) | *a == *b)
+        self.0.len() == other.0.len() && self.0.iter().zip(other.0.iter()).all(|(a, b)| *a == *b)
     }
 }
 
@@ -105,14 +127,27 @@ impl SpringsAndCondition {
             self.springs.replace_unknowns(possible_arrangement_desc).get_sizes().eq(&self.condition)
         }).count()
     }
+
+    fn unfold(&self) -> SpringsAndCondition {
+        SpringsAndCondition {
+            springs: {
+                Springs(std::iter::repeat(&self.springs)
+                    .take(4) // four copies with "?" at the end
+                    .flat_map(|v| v.0.clone().into_iter().chain(std::iter::once(UNKNOWN)))
+                    .chain(self.springs.0.clone()) // ...and one without "?" at the end.
+                    .collect())
+            },
+            condition: SpringSizes(self.condition.0.repeat(5)),
+        }
+    }
 }
 
 pub fn run() {
-    let file_str = fs::read_to_string("../inputs/day12").unwrap();
+    let file_str = fs::read_to_string("../inputs/testday12").unwrap();
     let all_pairs: Vec<SpringsAndCondition> = file_str.lines()
         .map(SpringsAndCondition::from_str)
         .collect();
 
-    println!("Part 1: {}", all_pairs.iter().rev().map(SpringsAndCondition::get_nbr_arrangements).sum::<usize>());
-    // println!("Part 2: {}", part2(&galaxies, uni_width));
+    println!("Part 1: {}", all_pairs.iter().map(SpringsAndCondition::get_nbr_arrangements).sum::<usize>());
+    println!("Part 2: {}", all_pairs.iter().map(SpringsAndCondition::unfold).map(|v| v.get_nbr_arrangements()).sum::<usize>());
 }

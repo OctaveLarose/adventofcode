@@ -2,7 +2,7 @@ use std::fs;
 
 #[derive(Debug)]
 struct Card {
-    id: usize, // turned out to be useless! oops.
+    _id: usize, // turned out to be useless! oops.
     winning_nbrs: Vec<usize>,
     nbrs: Vec<usize>
 }
@@ -15,7 +15,7 @@ impl Card {
             .unwrap();
 
         Card {
-            id: three_parter[0]
+            _id: three_parter[0]
                 .split_whitespace()
                 .nth(1)
                 .unwrap()

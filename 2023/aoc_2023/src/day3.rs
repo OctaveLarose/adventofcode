@@ -40,7 +40,7 @@ impl Display for Schematic {
         let mut i = 0;
 
         while i < (self.map.width * self.map.height) {
-            let matching_sym = self.symbols.iter().find(|(sym, sym_pos)| { *sym_pos == i });
+            let matching_sym = self.symbols.iter().find(|(_, sym_pos)| { *sym_pos == i });
             let matching_num = self.numbers.iter().find(|n| { n.pos == i });
 
             if matching_sym.is_some() {

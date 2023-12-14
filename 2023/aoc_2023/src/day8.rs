@@ -73,7 +73,7 @@ fn part1(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) -> usize {
 }
 
 fn part2(nodes: &Vec<Rc<RefCell<Node>>>, directions: &Vec<Dir>) -> usize {
-    let mut start_nodes: Vec<Rc<RefCell<Node>>> = nodes.iter().filter_map(|n|
+    let start_nodes: Vec<Rc<RefCell<Node>>> = nodes.iter().filter_map(|n|
         match n.borrow().name[2] == 'A' {
             true => Some(n.clone()),
             false => None
@@ -110,10 +110,10 @@ pub fn run() {
         .collect::<Vec<&str>>().iter()
         .map(|s| (&s[0..3], &s[7..10], &s[12..15]))
         .collect();
-    let mut nodes: Vec<Rc<RefCell<Node>>> = all_nodes_str.iter().map(|(a, _, _)| Rc::new(RefCell::new(Node::init(a)))).collect();
+    let nodes: Vec<Rc<RefCell<Node>>> = all_nodes_str.iter().map(|(a, _, _)| Rc::new(RefCell::new(Node::init(a)))).collect();
 
     for (name, left_name, right_name) in &all_nodes_str {
-        let mut cur_node = nodes.iter().find(|n| n.borrow().compare_name(*name)).unwrap();
+        let cur_node = nodes.iter().find(|n| n.borrow().compare_name(*name)).unwrap();
         let left_node = Rc::clone(nodes.iter().find(|n| n.borrow().compare_name(left_name)).unwrap());
         let right_node = Rc::clone(nodes.iter().find(|n| n.borrow().compare_name(right_name)).unwrap());
         cur_node.borrow_mut().link_with(left_node, right_node);

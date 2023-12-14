@@ -106,7 +106,7 @@ fn part1(pipe_map: &PipeMap) -> usize {
     let a_star_result = astar(
         &(pipe_map.start_pos, None),
         |(pos, prev_pos)| pipe_map.get_valid_destinations(*pos, *prev_pos),
-        |(pos, prev_pos)| pipe_map.get_heuristic(*pos),
+        |(pos, _)| pipe_map.get_heuristic(*pos),
         |(pos, prev_pos)| prev_pos.is_some() && *pos == pipe_map.start_pos)
         .unwrap();
 
