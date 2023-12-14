@@ -1,9 +1,8 @@
 use std::fs;
-use std::process::exit;
 use itertools::Itertools;
 use crate::day12::Spring::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum Spring {
     DOT,
     BROKEN,
@@ -47,6 +46,25 @@ impl Springs {
 
         sizes
     }
+
+    pub fn replace_unknowns(&self, unknowns_map: Vec<(&usize, &Spring)>) -> Springs {
+        Springs(
+            self.0.iter()
+                .enumerate()
+                .map(|(idx, spring)| {
+                    match spring {
+                        DOT => DOT,
+                        BROKEN => BROKEN,
+                        UNKNOWN => match &unknowns_map.iter().find(|(idx2, v)| idx == **idx2).unwrap().1 {
+                            DOT => DOT,
+                            BROKEN => BROKEN,
+                            UNKNOWN => panic!("Should be impossible")
+                        }
+                    }
+                })
+                .collect::<Vec<Spring>>()
+        )
+    }
 }
 
 #[derive(Debug)]
@@ -54,7 +72,7 @@ struct SpringSizes(Vec<usize>);
 
 impl PartialEq<Self> for SpringSizes {
     fn eq(&self, other: &Self) -> bool {
-        self.0.iter().zip(other.0.iter()).all(|(a, b) | *a == *b)
+        self.0.len() == other.0.len() && self.0.iter().zip(other.0.iter()).all(|(a, b) | *a == *b)
     }
 }
 
@@ -78,30 +96,23 @@ impl SpringsAndCondition {
 
     fn get_nbr_arrangements(&self) -> usize {
         let indices_unknowns: Vec<usize> = self.springs.0.iter().enumerate()
-            .filter_map(|(idx, s)| (*s == BROKEN).then(|| idx))
+            .filter_map(|(idx, s)| (*s == UNKNOWN).then(|| idx))
             .collect();
-        let all_possible_combinations = indices_unknowns.iter().cartesian_product(&[BROKEN, DOT]);
+        let all_possible_combinations = (0..indices_unknowns.len()).map(|_| vec![BROKEN, DOT]).multi_cartesian_product();
 
-        all_possible_combinations.map(|(idx, val)|)
-        // for l in all_possible_combinations {
-        //     dbg!(l);
-        // }
-
-
-
-        dbg!(&indices_unknowns);
-        exit(1);
-
-        42 //todo.
+        all_possible_combinations.filter(|spring_arrangement| {
+            let possible_arrangement_desc: Vec<(&usize, &Spring)> = indices_unknowns.iter().zip(spring_arrangement).collect();
+            self.springs.replace_unknowns(possible_arrangement_desc).get_sizes().eq(&self.condition)
+        }).count()
     }
 }
 
 pub fn run() {
-    let file_str = fs::read_to_string("../inputs/testday12").unwrap();
+    let file_str = fs::read_to_string("../inputs/day12").unwrap();
     let all_pairs: Vec<SpringsAndCondition> = file_str.lines()
         .map(SpringsAndCondition::from_str)
         .collect();
 
-    println!("Part 1: {}", all_pairs.iter().map(SpringsAndCondition::get_nbr_arrangements).sum::<usize>());
+    println!("Part 1: {}", all_pairs.iter().rev().map(SpringsAndCondition::get_nbr_arrangements).sum::<usize>());
     // println!("Part 2: {}", part2(&galaxies, uni_width));
 }
