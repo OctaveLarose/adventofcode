@@ -24,7 +24,7 @@ fn main() {
         return;
     }
 
-    match args.get(2).unwrap().parse::<usize>().unwrap() {
+    match args.get(1).unwrap().parse::<usize>().unwrap() {
         1 => day1::run(),
         2 => day2::run(),
         3 => day3::run(),
