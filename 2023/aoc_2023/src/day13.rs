@@ -1,7 +1,8 @@
 use std::fmt::{Debug, Formatter, Write};
 use std::fs;
+use itertools::Itertools;
 use crate::day13::Tile::*;
-use crate::map::{Map2D, MapElement};
+use crate::map::{Map2D, MapElement, Pos};
 
 #[derive(PartialEq)]
 enum Tile {
@@ -11,7 +12,7 @@ enum Tile {
 
 enum MirrorDirection {
     HORIZONTAL,
-    VERTICAL
+    VERTICAL,
 }
 
 impl Debug for Tile {
@@ -73,7 +74,46 @@ impl Map2D<Tile> {
         None
     }
 
-    fn get_part1_val(&self) -> usize {
+    fn find_smudge_candidates_horizontal(&self) -> Option<usize> {
+        let mut maybe_smudges: Vec<Pos> = vec![];
+
+        for v in (0..self.height).permutations(2) {
+            // activate that for perf, it should work
+            // if usize::abs_diff(v[0], v[1]) % 2 == 0 {
+            //     continue;
+            // }
+
+            let zip_two_rows = (0..self.width)
+                        .map(|i| v[0] * self.width + i)
+                        .zip((0..self.width).map(|i| v[1] * self.width + i));
+
+            if zip_two_rows.filter(|(a, b)| self.get(*a) != self.get(*b)).count() == 1 {
+                println!("Candidate: {} and {}", v[0], v[1]);
+                maybe_smudges.push(v[0] * self.width) // + the idx of the row
+            }
+        }
+        Some(42)
+    }
+
+    // fn find_smudge_candidates_vertical(&self) -> Option<usize> {
+    //     for v in (0..self.width).permutations(2) {
+    //         // activate that for perf, it should work
+    //         // if usize::abs_diff(v[0], v[1]) % 2 == 0 {
+    //         //     continue;
+    //         // }
+    //
+    //         let zip_two_cols = (0..self.height)
+    //             .map(|i| i * self.width + v[0])
+    //             .zip((0..self.width).map(|i| i * self.width + v[1]));
+    //
+    //         if zip_two_cols.filter(|(a, b)| self.get(*a) != self.get(*b)).count() == 1 {
+    //             println!("Candidate: {} and {}", v[0], v[1]);
+    //         }
+    //     }
+    //     Some(42)
+    // }
+
+    fn get_val(&self) -> usize {
         if let Some(horizontal_idx) = self.find_reflection(MirrorDirection::HORIZONTAL) {
             (horizontal_idx + 1) * 100
         } else if let Some(vertical_idx) = self.find_reflection(MirrorDirection::VERTICAL) {
@@ -85,13 +125,13 @@ impl Map2D<Tile> {
 }
 
 pub fn run() {
-    let file_str = fs::read_to_string("../inputs/day13").unwrap();
+    let file_str = fs::read_to_string("../inputs/testday13").unwrap();
     let all_maps: Vec<Map2D<Tile>> = file_str.split("\n\n").map(Map2D::parse).collect();
 
-    // dbg!(&all_maps);
-    // dbg!(all_maps.first().unwrap().find_vertical_reflection());
-    // dbg!(all_maps.last().unwrap().find_horizontal_reflection());
+    // dbg!(all_maps.first().unwrap().find_smudge_candidate_horizontal());
+    dbg!(all_maps.last().unwrap().find_smudge_candidates_horizontal());
+    // dbg!(all_maps.last().unwrap().find_smudge_candidates_vertical());
 
-    println!("Part 1: {}", all_maps.iter().map(Map2D::get_part1_val).sum::<usize>());
+    // println!("Part 1: {}", all_maps.iter().map(Map2D::get_val).sum::<usize>());
     // println!("Part 2: {}", all_pairs.iter().map(SpringsAndCondition::unfold).map(|v| v.get_nbr_arrangements()).sum::<usize>());
 }
